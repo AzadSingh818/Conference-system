@@ -241,10 +241,12 @@ export default function SubmitAbstract() {
                 <div>
                   <p><strong>Word Limits:</strong></p>
                   <ul className="ml-4 mt-1 space-y-1 text-xs">
-                    <li>• Free Paper: 250 words</li>
-                    <li>• Poster: 200 words</li>
-                    <li>• E-Poster: 200 words</li>
-                    <li>• Award Paper: 250 words</li>
+                    <li>• Free Paper: 300 words</li>
+                    <li>• Poster: 300 words</li>
+                    <li>• E-Poster: 300 words</li>
+                    <li>• Award Paper: 300 words</li>
+                    <li>• Oral Paper: 300 words</li>
+                    <li>• Oral Presentation: 300 words</li>
                   </ul>
                 </div>
               </div>

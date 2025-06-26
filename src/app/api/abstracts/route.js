@@ -102,10 +102,12 @@ export async function POST(request) {
 
     // Validate word count based on presentation type
     const wordLimits = {
-      'Free Paper': 250,
-      'Poster': 200,
-      'E-Poster': 200,
-      'Award Paper': 250
+      'Free Paper': 300,
+      'Poster': 300,
+      'E-Poster': 300,
+      'Award Paper': 300,
+      'Oral Paper': 250,
+      'Oral Presentation': 250
     };
 
     const wordCount = submissionData.abstract_content.trim().split(/\s+/).length;
