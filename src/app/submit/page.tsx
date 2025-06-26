@@ -394,11 +394,11 @@ export default function SubmitAbstract() {
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   disabled={loading}
                 >
-                  <option value="Free Paper">Free Paper</option>
-                  <option value="Poster">Poster Presentation</option>
-                  <option value="E-Poster">E-Poster</option>
-                  <option value="Award Paper">Award Paper</option>
-                  <option value="Oral">Oral Presentation</option>
+                  <option value="Hematology">Hematology</option>
+                  <option value="Oncology">Oncology</option>
+                  <option value="InPHOG">InPHOG</option>
+                  <option value="Nursing">Nursing</option>
+                  <option value="HSCT">HSCT</option>
                 </select>
               </div>
 
