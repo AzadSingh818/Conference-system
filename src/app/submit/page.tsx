@@ -383,6 +383,24 @@ export default function SubmitAbstract() {
                   <option value="Oral">Oral Presentation</option>
                 </select>
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Category*
+                </label>
+                <select
+                  required
+                  value={formData.presentation_type}
+                  onChange={(e) => setFormData({...formData, presentation_type: e.target.value})}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  disabled={loading}
+                >
+                  <option value="Free Paper">Free Paper</option>
+                  <option value="Poster">Poster Presentation</option>
+                  <option value="E-Poster">E-Poster</option>
+                  <option value="Award Paper">Award Paper</option>
+                  <option value="Oral">Oral Presentation</option>
+                </select>
+              </div>
 
               {/* Co-Authors */}
               <div className="md:col-span-2">
