@@ -34,6 +34,7 @@ export default function SubmitAbstract() {
     presenter_name: '',
     institution_name: '',
     presentation_type: 'Free Paper',
+    category: 'Hematology', // 🚀 NEW: Separate category field
     abstract_content: '',
     co_authors: '',
     registration_payment_id: '',
@@ -107,6 +108,7 @@ export default function SubmitAbstract() {
         presenter_name: formData.presenter_name,
         institution_name: formData.institution_name,
         presentation_type: formData.presentation_type,
+        category: formData.category, // 🚀 NEW: Include category in submission
         abstract_content: formData.abstract_content,
         co_authors: formData.co_authors,
         registration_payment_id: formData.registration_payment_id,
@@ -115,8 +117,8 @@ export default function SubmitAbstract() {
         attachedFiles: uploadedFiles,
         submissionDate: new Date().toISOString(),
         status: 'pending',
-        userId: user?.id, // Add user context
-        userEmail: user?.email // Add user context
+        userId: user?.id,
+        userEmail: user?.email
       };
 
       console.log('🚀 Submitting to API:', submissionData);
@@ -147,6 +149,7 @@ export default function SubmitAbstract() {
           presenter_name: user?.name || '',
           institution_name: user?.institution || '',
           presentation_type: 'Free Paper',
+          category: 'Hematology',
           abstract_content: '',
           co_authors: '',
           registration_payment_id: '',
@@ -239,7 +242,7 @@ export default function SubmitAbstract() {
               <div className="flex items-start">
                 <FileText className="h-4 w-4 text-purple-500 mr-2 mt-0.5 flex-shrink-0" />
                 <div>
-                  <p><strong>Word Limits:</strong></p>
+                  <p><strong>Word Limit: 300 words (All Categories)</strong></p>
                   <ul className="ml-4 mt-1 space-y-1 text-xs">
                     <li>• Free Paper: 300 words</li>
                     <li>• Poster: 300 words</li>
@@ -385,14 +388,16 @@ export default function SubmitAbstract() {
                   <option value="Oral">Oral Presentation</option>
                 </select>
               </div>
+
+              {/* 🚀 NEW: Category Field (as requested in DOCX) */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Category*
+                  Category *
                 </label>
                 <select
                   required
-                  value={formData.presentation_type}
-                  onChange={(e) => setFormData({...formData, presentation_type: e.target.value})}
+                  value={formData.category}
+                  onChange={(e) => setFormData({...formData, category: e.target.value})}
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   disabled={loading}
                 >
