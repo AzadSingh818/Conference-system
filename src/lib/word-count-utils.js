@@ -1,14 +1,17 @@
 // src/lib/word-count-utils.js
 
-// PRD defined word limits
+// 🚀 UPDATED: All presentation types now have 300 word limit (as requested)
 export const WORD_LIMITS = {
-    'Free Paper': 250,
-    'Poster': 200,
-    'E-Poster': 200,
-    'Award Paper': 250,
-    'Oral': 250, // Alternative naming
-    'Poster Presentation': 200,
-    'E-Poster Presentation': 200
+    'Free Paper': 300,                // UPDATED from 250
+    'Poster': 300,                    // UPDATED from 200  
+    'E-Poster': 300,                  // UPDATED from 200
+    'Award Paper': 300,               // UPDATED from 250
+    'Oral': 300,                      // UPDATED from 250
+    'Poster Presentation': 300,       // UPDATED from 200
+    'E-Poster Presentation': 300,     // UPDATED from 200
+    'Oral Presentation': 300,         // NEW: Added
+    'Case Report': 300,               // NEW: Added
+    'Free Paper Presentation': 300    // NEW: Added
   };
   
   /**
@@ -32,18 +35,21 @@ export const WORD_LIMITS = {
   
   /**
    * Get word limit for presentation type
+   * 🚀 UPDATED: Default limit changed to 300
    */
   export const getWordLimit = (presentationType) => {
-    if (!presentationType) return 250; // Default limit
+    if (!presentationType) return 300; // UPDATED: Default limit 300
     
     // Normalize presentation type
     const normalizedType = presentationType.toString().trim();
     
-    return WORD_LIMITS[normalizedType] || 250;
+    // 🚀 UPDATED: Return 300 for all types, fallback to 300
+    return WORD_LIMITS[normalizedType] || 300;
   };
   
   /**
    * Validate word count against limit
+   * 🚀 UPDATED: Now validates against 300 word limit
    */
   export const validateWordCount = (text, presentationType) => {
     const wordCount = countWords(text);
@@ -107,6 +113,7 @@ export const WORD_LIMITS = {
   
   /**
    * Format word count message
+   * 🚀 UPDATED: Messages now reference 300 word limits
    */
   export const getWordCountMessage = (wordCount, limit, presentationType) => {
     const remaining = limit - wordCount;
@@ -130,4 +137,58 @@ export const WORD_LIMITS = {
   export const getWordPreview = (text, maxWords = 50) => {
     const words = text.trim().split(/\s+/).slice(0, maxWords);
     return words.join(' ') + (countWords(text) > maxWords ? '...' : '');
+  };
+
+  // 🚀 NEW: Additional utility functions for better validation
+
+  /**
+   * Get detailed validation with suggestions
+   */
+  export const getDetailedValidation = (text, presentationType) => {
+    const validation = validateWordCount(text, presentationType);
+    const status = getWordCountStatus(validation.wordCount, validation.limit);
+    
+    return {
+      ...validation,
+      ...status,
+      suggestion: getSuggestion(validation),
+      canSubmit: validation.isValid && validation.wordCount > 0
+    };
+  };
+
+  /**
+   * Get helpful suggestions based on word count
+   */
+  export const getSuggestion = (validation) => {
+    const { wordCount, limit, percentage, isValid } = validation;
+    
+    if (wordCount === 0) {
+      return `Please enter your abstract content. You have ${limit} words available.`;
+    }
+    
+    if (!isValid) {
+      return `Please reduce by ${Math.abs(validation.remaining)} words to meet the ${limit}-word limit.`;
+    }
+    
+    if (percentage >= 85) {
+      return `You're close to the limit with ${validation.remaining} words remaining. Consider reviewing for conciseness.`;
+    }
+    
+    if (percentage >= 50 && percentage < 85) {
+      return `Good length! ${wordCount} words used. Well-balanced for comprehensive review.`;
+    }
+    
+    if (percentage < 50) {
+      return `You have ${validation.remaining} more words available. Consider adding more detail.`;
+    }
+    
+    return `${wordCount} words used out of ${limit} available.`;
+  };
+
+  // 🚀 NEW: Export all limits for reference
+  export const getAllLimits = () => WORD_LIMITS;
+
+  // 🚀 NEW: Check if presentation type is valid
+  export const isValidPresentationType = (presentationType) => {
+    return Object.keys(WORD_LIMITS).includes(presentationType);
   };
