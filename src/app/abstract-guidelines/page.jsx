@@ -132,15 +132,15 @@ export default function AbstractGuidelines() {
                 <div className="space-y-3">
                   <div className="flex justify-between items-center p-2 bg-white rounded">
                     <span className="text-sm font-medium">Oral Paper:</span>
-                    <span className="font-bold text-blue-700">250 words</span>
+                    <span className="font-bold text-blue-700">300 words</span>
                   </div>
                   <div className="flex justify-between items-center p-2 bg-white rounded">
                     <span className="text-sm font-medium">Poster Presentation:</span>
-                    <span className="font-bold text-blue-700">200 words</span>
+                    <span className="font-bold text-blue-700">300 words</span>
                   </div>
                   <div className="flex justify-between items-center p-2 bg-white rounded">
                     <span className="text-sm font-medium">E-Poster:</span>
-                    <span className="font-bold text-blue-700">200 words</span>
+                    <span className="font-bold text-blue-700">300 words</span>
                   </div>
                 </div>
               </div>

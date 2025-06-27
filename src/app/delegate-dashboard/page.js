@@ -8,10 +8,11 @@ import {
   Hotel, Users, CreditCard, UserCheck, Edit, Search, Filter,
   Plus, Eye as ViewIcon, Upload as UploadIcon, FileDown,
   X, AlertCircle, CheckCircle2, Home, ChevronRight, ExternalLink,
-  RefreshCw, Wifi, WifiOff
+  RefreshCw, Wifi, WifiOff, Save, ArrowLeft
 } from 'lucide-react';
 import { getCurrentUser, logoutUser } from '@/lib/auth-utils';
 import FinalUploadModal from '@/components/FinalUploadModal';
+import ValidatedTextArea from '@/components/ValidatedTextArea';
 
 export default function DelegateDashboard() {
   const router = useRouter();
@@ -24,6 +25,13 @@ export default function DelegateDashboard() {
   const [apiError, setApiError] = useState(null);
   const [retryCount, setRetryCount] = useState(0);
   const [lastFetched, setLastFetched] = useState(null);
+
+  // 🚀 NEW: Edit functionality states
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingAbstract, setEditingAbstract] = useState(null);
+  const [editLoading, setEditLoading] = useState(false);
+  const [editMessage, setEditMessage] = useState('');
+  const [wordCountValid, setWordCountValid] = useState(true);
 
   // Authentication check
   useEffect(() => {
@@ -152,6 +160,98 @@ export default function DelegateDashboard() {
     fetchUserAbstracts(); // Refresh data after upload
   };
 
+  // 🚀 NEW: Handle edit abstract
+  const handleEditAbstract = (abstract) => {
+    console.log('✏️ Opening edit modal for:', abstract.title);
+    setEditingAbstract({
+      id: abstract.id,
+      title: abstract.title,
+      presenter_name: abstract.presenter_name,
+      institution_name: abstract.institution_name || abstract.institution,
+      presentation_type: abstract.presentation_type,
+      category: abstract.category || 'Hematology', // 🚀 NEW: Include category
+      abstract_content: abstract.abstract_content || abstract.abstract,
+      co_authors: abstract.co_authors || ''
+    });
+    setEditMessage('');
+    setWordCountValid(true);
+    setShowEditModal(true);
+  };
+
+  // 🚀 NEW: Handle edit form submission
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    setEditLoading(true);
+    setEditMessage('');
+
+    if (!wordCountValid) {
+      setEditMessage('❌ Please ensure your abstract meets the word limit requirements (300 words maximum).');
+      setEditLoading(false);
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+      
+      if (!token) {
+        setEditMessage('❌ Authentication token missing. Please login again.');
+        setEditLoading(false);
+        return;
+      }
+
+      console.log('🔄 Updating abstract:', editingAbstract.id);
+
+      const response = await fetch('/api/abstracts', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          id: editingAbstract.id,
+          title: editingAbstract.title,
+          presenter_name: editingAbstract.presenter_name,
+          institution_name: editingAbstract.institution_name,
+          presentation_type: editingAbstract.presentation_type,
+          category: editingAbstract.category, // 🚀 NEW: Include category in update
+          abstract_content: editingAbstract.abstract_content,
+          co_authors: editingAbstract.co_authors
+        })
+      });
+
+      const result = await response.json();
+      console.log('📊 Edit API Response:', result);
+
+      if (response.ok && result.success) {
+        setEditMessage('✅ Abstract updated successfully!');
+        
+        // Refresh abstracts list
+        await fetchUserAbstracts();
+        
+        // Close modal after 2 seconds
+        setTimeout(() => {
+          setShowEditModal(false);
+          setEditingAbstract(null);
+          setEditMessage('');
+        }, 2000);
+      } else {
+        throw new Error(result.error || result.message || 'Update failed');
+      }
+
+    } catch (error) {
+      console.error('❌ Edit submission error:', error);
+      setEditMessage(`❌ Update failed: ${error.message}`);
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
+  // 🚀 NEW: Handle word count validation for edit
+  const handleEditWordCountValidation = (validation) => {
+    setWordCountValid(validation.isValid);
+    console.log('📝 Edit word count validation:', validation);
+  };
+
   // Manual refresh function
   const handleManualRefresh = () => {
     console.log('🔄 Manual refresh triggered by user');
@@ -206,6 +306,25 @@ export default function DelegateDashboard() {
       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${config.color}`}>
         <IconComponent className="w-3 h-3 mr-1" />
         {config.text}
+      </span>
+    );
+  };
+
+  // 🚀 NEW: Get category badge
+  const getCategoryBadge = (category) => {
+    const categoryConfig = {
+      'Hematology': { color: 'bg-red-100 text-red-700 border-red-300' },
+      'Oncology': { color: 'bg-purple-100 text-purple-700 border-purple-300' },
+      'InPHOG': { color: 'bg-blue-100 text-blue-700 border-blue-300' },
+      'Nursing': { color: 'bg-green-100 text-green-700 border-green-300' },
+      'HSCT': { color: 'bg-orange-100 text-orange-700 border-orange-300' }
+    };
+    
+    const config = categoryConfig[category] || categoryConfig['Hematology'];
+    
+    return (
+      <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${config.color}`}>
+        🏷️ {category}
       </span>
     );
   };
@@ -379,25 +498,34 @@ export default function DelegateDashboard() {
                           <strong> Submitted:</strong> {new Date(abstract.submission_date).toLocaleDateString()} • 
                           <strong> Type:</strong> {abstract.presentation_type}
                         </p>
+                        {/* 🚀 NEW: Display category */}
                         <p>
-                          <strong>Presenter:</strong> {abstract.presenter_name} • 
-                          <strong>Institution:</strong> {abstract.institution}
+                          <strong>Category:</strong> {abstract.category || 'Hematology'} • 
+                          <strong> Presenter:</strong> {abstract.presenter_name}
+                        </p>
+                        <p>
+                          <strong>Institution:</strong> {abstract.institution_name || abstract.institution}
                         </p>
                         {abstract.co_authors && (
                           <p><strong>Co-authors:</strong> {abstract.co_authors}</p>
                         )}
                       </div>
                     </div>
-                    <div className="ml-4">
+                    <div className="ml-4 flex flex-col space-y-2">
                       {getStatusBadge(abstract.status)}
+                      {/* 🚀 NEW: Category badge */}
+                      {getCategoryBadge(abstract.category || 'Hematology')}
                     </div>
                   </div>
 
                   {/* Action Buttons based on Status */}
                   <div className="flex flex-wrap gap-2">
-                    {/* Edit Abstract - Only for pending */}
+                    {/* 🚀 UPDATED: Edit Abstract - Only for pending */}
                     {abstract.status === 'pending' && (
-                      <button className="flex items-center px-3 py-1 bg-yellow-100 text-yellow-700 rounded text-sm hover:bg-yellow-200 transition-colors">
+                      <button 
+                        onClick={() => handleEditAbstract(abstract)}
+                        className="flex items-center px-3 py-1 bg-yellow-100 text-yellow-700 rounded text-sm hover:bg-yellow-200 transition-colors"
+                      >
                         <Edit className="w-3 h-3 mr-1" />
                         Edit Abstract
                       </button>
@@ -484,7 +612,16 @@ export default function DelegateDashboard() {
       approved: abstracts.filter(a => a.status === 'approved').length,
       rejected: abstracts.filter(a => a.status === 'rejected').length,
       finalSubmitted: abstracts.filter(a => a.status === 'final_submitted').length,
-      underReview: abstracts.filter(a => a.status === 'under_review').length
+      underReview: abstracts.filter(a => a.status === 'under_review').length,
+      
+      // 🚀 NEW: Category-wise stats
+      byCategory: {
+        hematology: abstracts.filter(a => (a.category || 'Hematology').toLowerCase() === 'hematology').length,
+        oncology: abstracts.filter(a => (a.category || 'Hematology').toLowerCase() === 'oncology').length,
+        inphog: abstracts.filter(a => (a.category || 'Hematology').toLowerCase() === 'inphog').length,
+        nursing: abstracts.filter(a => (a.category || 'Hematology').toLowerCase() === 'nursing').length,
+        hsct: abstracts.filter(a => (a.category || 'Hematology').toLowerCase() === 'hsct').length
+      }
     };
 
     return (
@@ -562,6 +699,35 @@ export default function DelegateDashboard() {
           </div>
         </div>
 
+        {/* 🚀 NEW: Category Statistics */}
+        {stats.total > 0 && (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h3 className="text-lg font-semibold mb-4">Your Abstracts by Category</h3>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+              <div className="text-center p-3 bg-red-50 rounded-lg">
+                <div className="text-2xl font-bold text-red-600">{stats.byCategory.hematology}</div>
+                <div className="text-sm text-red-700">Hematology</div>
+              </div>
+              <div className="text-center p-3 bg-purple-50 rounded-lg">
+                <div className="text-2xl font-bold text-purple-600">{stats.byCategory.oncology}</div>
+                <div className="text-sm text-purple-700">Oncology</div>
+              </div>
+              <div className="text-center p-3 bg-blue-50 rounded-lg">
+                <div className="text-2xl font-bold text-blue-600">{stats.byCategory.inphog}</div>
+                <div className="text-sm text-blue-700">InPHOG</div>
+              </div>
+              <div className="text-center p-3 bg-green-50 rounded-lg">
+                <div className="text-2xl font-bold text-green-600">{stats.byCategory.nursing}</div>
+                <div className="text-sm text-green-700">Nursing</div>
+              </div>
+              <div className="text-center p-3 bg-orange-50 rounded-lg">
+                <div className="text-2xl font-bold text-orange-600">{stats.byCategory.hsct}</div>
+                <div className="text-sm text-orange-700">HSCT</div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Quick Actions */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
@@ -584,7 +750,7 @@ export default function DelegateDashboard() {
               <ViewIcon className="h-6 w-6 text-green-600 mr-3" />
               <div className="text-left">
                 <div className="text-sm font-medium text-green-600 group-hover:text-green-700">Manage Abstracts</div>
-                <div className="text-xs text-green-500">View status & upload finals</div>
+                <div className="text-xs text-green-500">View status & edit submissions</div>
               </div>
             </button>
             
@@ -631,14 +797,15 @@ export default function DelegateDashboard() {
                     <div className="flex-1">
                       <h4 className="font-medium text-gray-900 mb-1">{abstract.title}</h4>
                       <p className="text-sm text-gray-600 mb-2">
-                        {abstract.id} • {abstract.presentation_type} • Submitted: {new Date(abstract.submission_date).toLocaleDateString()}
+                        {abstract.id} • {abstract.presentation_type} • Category: {abstract.category || 'Hematology'} • Submitted: {new Date(abstract.submission_date).toLocaleDateString()}
                       </p>
                       <p className="text-sm text-gray-500">
-                        Institution: {abstract.institution}
+                        Institution: {abstract.institution_name || abstract.institution}
                       </p>
                     </div>
-                    <div className="ml-4">
+                    <div className="ml-4 flex flex-col space-y-1">
                       {getStatusBadge(abstract.status)}
+                      {getCategoryBadge(abstract.category || 'Hematology')}
                     </div>
                   </div>
                   
@@ -650,7 +817,12 @@ export default function DelegateDashboard() {
                     <div className="flex space-x-2">
                       <button className="text-sm text-blue-600 hover:text-blue-800 font-medium">View Details</button>
                       {abstract.status === 'pending' && (
-                        <button className="text-sm text-blue-600 hover:text-blue-800 font-medium">Edit</button>
+                        <button 
+                          onClick={() => handleEditAbstract(abstract)}
+                          className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                        >
+                          Edit
+                        </button>
                       )}
                       {abstract.status === 'approved' && !abstract.final_file_url && (
                         <button 
@@ -714,7 +886,7 @@ export default function DelegateDashboard() {
               )}
             </div>
             <span className="text-xs text-gray-400">
-              Production Ready v2.0 • Real-time Data
+              Production Ready v2.0 • Real-time Data • Edit Support
             </span>
           </div>
         </div>
@@ -781,6 +953,199 @@ export default function DelegateDashboard() {
     </div>
   );
 
+  // 🚀 NEW: Edit Abstract Modal Component
+  const EditAbstractModal = () => {
+    if (!showEditModal || !editingAbstract) return null;
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
+            <h3 className="text-lg font-semibold text-gray-900">Edit Abstract</h3>
+            <button
+              onClick={() => {
+                setShowEditModal(false);
+                setEditingAbstract(null);
+                setEditMessage('');
+              }}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+
+          <div className="p-6">
+            {/* Edit Message */}
+            {editMessage && (
+              <div className={`p-4 rounded-lg mb-6 ${
+                editMessage.includes('✅') ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+              }`}>
+                {editMessage}
+              </div>
+            )}
+
+            <form onSubmit={handleEditSubmit} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Title */}
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Abstract Title *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={editingAbstract.title}
+                    onChange={(e) => setEditingAbstract({...editingAbstract, title: e.target.value})}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    disabled={editLoading}
+                  />
+                </div>
+
+                {/* Presenter Name */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Presenter Name *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={editingAbstract.presenter_name}
+                    onChange={(e) => setEditingAbstract({...editingAbstract, presenter_name: e.target.value})}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    disabled={editLoading}
+                  />
+                </div>
+
+                {/* Institution */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Institution *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={editingAbstract.institution_name}
+                    onChange={(e) => setEditingAbstract({...editingAbstract, institution_name: e.target.value})}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    disabled={editLoading}
+                  />
+                </div>
+
+                {/* Presentation Type */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Presentation Type *
+                  </label>
+                  <select
+                    required
+                    value={editingAbstract.presentation_type}
+                    onChange={(e) => setEditingAbstract({...editingAbstract, presentation_type: e.target.value})}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    disabled={editLoading}
+                  >
+                    <option value="Free Paper">Free Paper</option>
+                    <option value="Poster">Poster Presentation</option>
+                    <option value="E-Poster">E-Poster</option>
+                    <option value="Award Paper">Award Paper</option>
+                    <option value="Oral">Oral Presentation</option>
+                  </select>
+                </div>
+
+                {/* 🚀 NEW: Category Field in Edit Modal */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Category *
+                  </label>
+                  <select
+                    required
+                    value={editingAbstract.category}
+                    onChange={(e) => setEditingAbstract({...editingAbstract, category: e.target.value})}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    disabled={editLoading}
+                  >
+                    <option value="Hematology">Hematology</option>
+                    <option value="Oncology">Oncology</option>
+                    <option value="InPHOG">InPHOG</option>
+                    <option value="Nursing">Nursing</option>
+                    <option value="HSCT">HSCT</option>
+                  </select>
+                </div>
+
+                {/* Co-Authors */}
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Co-Authors
+                  </label>
+                  <input
+                    type="text"
+                    value={editingAbstract.co_authors}
+                    onChange={(e) => setEditingAbstract({...editingAbstract, co_authors: e.target.value})}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Comma-separated co-author names"
+                    disabled={editLoading}
+                  />
+                </div>
+              </div>
+
+              {/* Abstract Content with Validation */}
+              <div>
+                <ValidatedTextArea
+                  value={editingAbstract.abstract_content}
+                  onChange={(content) => setEditingAbstract({...editingAbstract, abstract_content: content})}
+                  presentationType={editingAbstract.presentation_type}
+                  onValidationChange={handleEditWordCountValidation}
+                  disabled={editLoading}
+                  required={true}
+                  placeholder="Enter your complete abstract here... (300 words maximum)"
+                  label="Abstract Content (Edit Mode)"
+                />
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowEditModal(false);
+                    setEditingAbstract(null);
+                    setEditMessage('');
+                  }}
+                  className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                  disabled={editLoading}
+                >
+                  <ArrowLeft className="w-4 h-4 mr-1 inline" />
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={editLoading || !wordCountValid}
+                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center"
+                >
+                  {editLoading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Saving...
+                    </>
+                  ) : !wordCountValid ? (
+                    <>
+                      <AlertCircle className="w-4 h-4 mr-1" />
+                      Fix Word Count
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4 mr-1" />
+                      Save Changes
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   // Render content based on active section
   const renderContent = () => {
     switch (activeSection) {
@@ -844,7 +1209,7 @@ export default function DelegateDashboard() {
               </div>
               <div className="ml-3">
                 <h1 className="text-xl font-semibold text-gray-900">APBMT 2025</h1>
-                <p className="text-xs text-gray-500">Production Environment</p>
+                <p className="text-xs text-gray-500">Production Environment • Edit Enabled</p>
               </div>
             </div>
             
@@ -971,6 +1336,9 @@ export default function DelegateDashboard() {
           onClose={closeFinalUpload}
         />
       )}
+
+      {/* 🚀 NEW: Edit Abstract Modal */}
+      <EditAbstractModal />
     </div>
   );
 }

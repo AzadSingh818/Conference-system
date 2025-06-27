@@ -95,33 +95,37 @@ export async function getUserById(userId) {
 }
 
 // ========================================
-// ABSTRACT MANAGEMENT FUNCTIONS
+// ABSTRACT MANAGEMENT FUNCTIONS - UPDATED WITH CATEGORY
 // ========================================
 
 export async function createAbstract(abstractData) {
   const client = await pool.connect();
   try {
     console.log('🔄 Creating abstract for user:', abstractData.user_id);
+    console.log('📝 Abstract data:', { title: abstractData.title, category: abstractData.category });
     
     // Generate unique abstract number
     const abstractNumber = `ABST-${Date.now()}-${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
     
+    // 🚀 NEW: Updated query to include category field
     const query = `
       INSERT INTO abstracts (
         user_id, title, presenter_name, institution_name, presentation_type,
-        abstract_content, co_authors, file_path, file_name, file_size,
+        category, abstract_content, co_authors, file_path, file_name, file_size,
         status, abstract_number, registration_id, submission_date, updated_at
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW(), NOW())
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, NOW(), NOW())
       RETURNING *
     `;
     
+    // 🚀 NEW: Added category in values array
     const values = [
       abstractData.user_id,
       abstractData.title,
       abstractData.presenter_name,
       abstractData.institution_name || null,
       abstractData.presentation_type,
+      abstractData.category || 'Hematology', // 🚀 NEW: Category field with default
       abstractData.abstract_content,
       abstractData.co_authors || null,
       abstractData.file_path || null,
@@ -133,7 +137,7 @@ export async function createAbstract(abstractData) {
     ];
     
     const result = await client.query(query, values);
-    console.log('✅ Abstract created successfully:', result.rows[0].id);
+    console.log('✅ Abstract created successfully with category:', result.rows[0].category);
     return result.rows[0];
     
   } catch (error) {
@@ -154,6 +158,7 @@ export async function getAbstractsByUserId(userId) {
       throw new Error('Invalid user ID provided');
     }
     
+    // 🚀 NEW: Added category in SELECT query
     const query = `
       SELECT * FROM abstracts 
       WHERE user_id = $1 
@@ -179,10 +184,11 @@ export async function getUserAbstracts(userId) {
   return await getAbstractsByUserId(userId);
 }
 
-// 🚀 CRITICAL FIX: getAllAbstracts with proper field mapping
+// 🚀 UPDATED: getAllAbstracts with category field mapping
 export async function getAllAbstracts() {
   const client = await pool.connect();
   try {
+    // 🚀 NEW: Added category in SELECT query
     const query = `
       SELECT 
         a.id,
@@ -190,6 +196,7 @@ export async function getAllAbstracts() {
         a.presenter_name,
         a.institution_name,
         a.presentation_type,
+        a.category,
         a.abstract_content,
         a.co_authors,
         a.status,
@@ -212,7 +219,7 @@ export async function getAllAbstracts() {
     const result = await client.query(query);
     console.log(`📊 Retrieved ${result.rows.length} total abstracts`);
     
-    // 🎯 CRITICAL FIX: Map database fields to frontend expected format
+    // 🎯 UPDATED: Map database fields to frontend expected format with category
     const mappedAbstracts = result.rows.map((abstract, index) => ({
       // Core fields
       id: abstract.id,
@@ -251,7 +258,10 @@ export async function getAllAbstracts() {
       
       // 🚀 FIX: Multiple presentation type mappings
       presentation_type: abstract.presentation_type || 'Free Paper',
-      category: abstract.presentation_type || 'Free Paper', // Frontend expects 'category'
+      
+      // 🚀 NEW: Category field mappings
+      category: abstract.category || 'Hematology', // NEW: Category field
+      categoryType: abstract.category || 'Hematology', // Alternative field name
       
       // 🚀 FIX: Multiple abstract number mappings
       abstract_number: abstract.abstract_number || `ABST-${String(index + 1).padStart(3, '0')}`,
@@ -277,6 +287,7 @@ export async function getAllAbstracts() {
       // 🚀 FIX: Safe string operations for filtering
       statusLower: (abstract.status || 'pending').toLowerCase(),
       presentationTypeLower: (abstract.presentation_type || 'free paper').toLowerCase(),
+      categoryLower: (abstract.category || 'hematology').toLowerCase(), // NEW: Category lowercase for filtering
       
       // Additional computed fields
       hasFile: !!(abstract.file_path || abstract.file_name)
@@ -302,6 +313,7 @@ export async function getAbstractById(abstractId) {
       throw new Error('Invalid abstract ID provided');
     }
     
+    // 🚀 NEW: Added category in SELECT query
     const query = `
       SELECT a.*, u.email, u.phone, u.full_name as user_full_name
       FROM abstracts a 
@@ -420,6 +432,7 @@ export async function bulkUpdateAbstractStatus(abstractIds, status, comments = n
   }
 }
 
+// 🚀 UPDATED: updateAbstract function with category support
 export async function updateAbstract(abstractId, updateData) {
   const client = await pool.connect();
   try {
@@ -437,10 +450,10 @@ export async function updateAbstract(abstractId, updateData) {
     const values = [];
     let paramCount = 1;
     
-    // Handle each possible update field
+    // Handle each possible update field - UPDATED WITH CATEGORY
     const allowedFields = [
       'title', 'presenter_name', 'institution_name', 'presentation_type',
-      'abstract_content', 'co_authors', 'file_path', 'file_name', 
+      'category', 'abstract_content', 'co_authors', 'file_path', 'file_name', 
       'file_size', 'status', 'reviewer_comments', 'final_file_path'
     ];
     
@@ -475,7 +488,7 @@ export async function updateAbstract(abstractId, updateData) {
       throw new Error(`Abstract with ID ${id} not found`);
     }
     
-    console.log('✅ Abstract updated successfully');
+    console.log('✅ Abstract updated successfully with category:', result.rows[0].category);
     return result.rows[0];
     
   } catch (error) {
@@ -517,7 +530,7 @@ export async function deleteAbstract(abstractId) {
 }
 
 // ========================================
-// STATISTICS AND REPORTING
+// STATISTICS AND REPORTING - UPDATED WITH CATEGORY
 // ========================================
 
 export async function getStatistics() {
@@ -525,16 +538,18 @@ export async function getStatistics() {
   try {
     console.log('🔄 Fetching statistics...');
     
+    // 🚀 UPDATED: Statistics by presentation type
     const query = `
       SELECT 
         presentation_type,
+        category,
         COUNT(*) as total_count,
         COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending_count,
         COUNT(CASE WHEN status = 'approved' THEN 1 END) as approved_count,
         COUNT(CASE WHEN status = 'rejected' THEN 1 END) as rejected_count
       FROM abstracts 
-      GROUP BY presentation_type
-      ORDER BY presentation_type
+      GROUP BY presentation_type, category
+      ORDER BY presentation_type, category
     `;
     
     const result = await client.query(query);
@@ -546,16 +561,33 @@ export async function getStatistics() {
         COUNT(CASE WHEN status = 'pending' THEN 1 END) as total_pending,
         COUNT(CASE WHEN status = 'approved' THEN 1 END) as total_approved,
         COUNT(CASE WHEN status = 'rejected' THEN 1 END) as total_rejected,
+        COUNT(CASE WHEN status = 'final_submitted' THEN 1 END) as total_final_submitted,
         COUNT(DISTINCT user_id) as total_users
       FROM abstracts
     `;
     
     const totalResult = await client.query(totalQuery);
     
+    // 🚀 NEW: Statistics by category
+    const categoryQuery = `
+      SELECT 
+        category,
+        COUNT(*) as total_count,
+        COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending_count,
+        COUNT(CASE WHEN status = 'approved' THEN 1 END) as approved_count,
+        COUNT(CASE WHEN status = 'rejected' THEN 1 END) as rejected_count
+      FROM abstracts 
+      GROUP BY category
+      ORDER BY category
+    `;
+    
+    const categoryResult = await client.query(categoryQuery);
+    
     console.log('✅ Statistics retrieved successfully');
     
     return {
       byCategory: result.rows,
+      byAbstractCategory: categoryResult.rows, // NEW: Category-wise stats
       totals: totalResult.rows[0]
     };
     
@@ -602,6 +634,23 @@ export async function initializeDatabase() {
     
     if (existingTables.includes('users') && existingTables.includes('abstracts')) {
       console.log('✅ Database tables exist and ready');
+      
+      // 🚀 NEW: Check if category column exists
+      const columnQuery = `
+        SELECT column_name 
+        FROM information_schema.columns 
+        WHERE table_name = 'abstracts' AND column_name = 'category'
+      `;
+      
+      const columnResult = await client.query(columnQuery);
+      
+      if (columnResult.rows.length === 0) {
+        console.log('⚠️ Category column missing, needs to be added to abstracts table');
+        console.log('📝 Run this SQL: ALTER TABLE abstracts ADD COLUMN category VARCHAR(50) DEFAULT \'Hematology\';');
+      } else {
+        console.log('✅ Category column exists in abstracts table');
+      }
+      
       return true;
     } else {
       console.log('⚠️ Some tables missing. Database needs setup.');
@@ -653,14 +702,14 @@ export function handleDatabaseError(error, operation) {
 // Export pool for direct access if needed
 export { pool };
 
-// 🚀 CRITICAL FIX: COMPLETE DEFAULT EXPORT WITH ALL FUNCTIONS INCLUDING getUserAbstracts
+// 🚀 UPDATED: COMPLETE DEFAULT EXPORT WITH ALL FUNCTIONS INCLUDING CATEGORY SUPPORT
 export default {
   // User functions
   createUser,
   getUserByEmail,
   getUserById,
   
-  // Abstract functions
+  // Abstract functions - UPDATED WITH CATEGORY SUPPORT
   createAbstract,
   getAbstractsByUserId,
   getUserAbstracts, // 🚀 CRITICAL: Added missing function
@@ -668,10 +717,10 @@ export default {
   getAbstractById,
   updateAbstractStatus,
   bulkUpdateAbstractStatus, // 🚀 CRITICAL FUNCTION
-  updateAbstract,
+  updateAbstract, // UPDATED WITH CATEGORY
   deleteAbstract,
   
-  // Statistics and utilities
+  // Statistics and utilities - UPDATED WITH CATEGORY STATS
   getStatistics,
   testConnection,
   initializeDatabase,

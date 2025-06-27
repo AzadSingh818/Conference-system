@@ -53,6 +53,7 @@ export async function POST(request) {
         presenter_name: formData.get('presenter_name'),
         institution_name: formData.get('institution_name'),
         presentation_type: formData.get('presentation_type'),
+        category: formData.get('category'), // 🚀 NEW: Category field
         abstract_content: formData.get('abstract_content'),
         co_authors: formData.get('co_authors') || '',
         registration_id: formData.get('registration_id') || '',
@@ -72,7 +73,8 @@ export async function POST(request) {
     console.log('📝 Submission data received:', {
       title: submissionData.title?.substring(0, 50) + '...',
       presenter: submissionData.presenter_name,
-      type: submissionData.presentation_type
+      type: submissionData.presentation_type,
+      category: submissionData.category // 🚀 NEW: Log category
     });
 
     // Get user info from token (if available)
@@ -84,8 +86,8 @@ export async function POST(request) {
       console.log('⚠️ No valid token provided, treating as guest submission');
     }
 
-    // Validation
-    const requiredFields = ['title', 'presenter_name', 'institution_name', 'presentation_type', 'abstract_content'];
+    // 🚀 UPDATED: Validation with category
+    const requiredFields = ['title', 'presenter_name', 'institution_name', 'presentation_type', 'category', 'abstract_content'];
     const missingFields = requiredFields.filter(field => !submissionData[field]);
     
     if (missingFields.length > 0) {
@@ -100,20 +102,21 @@ export async function POST(request) {
       );
     }
 
-    // Validate word count based on presentation type
+    // 🚀 UPDATED: Validate word count with 300 word limit for all types
     const wordLimits = {
-      'Free Paper': 300,
-      'Poster': 300,
-      'E-Poster': 300,
-      'Award Paper': 300,
-      'Oral Paper': 250,
-      'Oral Presentation': 250
+      'Free Paper': 300,          // UPDATED from 250 to 300
+      'Poster': 300,              // UPDATED from 250 to 300
+      'E-Poster': 300,            // UPDATED from 250 to 300
+      'Award Paper': 300,         // UPDATED from 250 to 300
+      'Oral Paper': 300,          // UPDATED from 250 to 300
+      'Oral Presentation': 300,   // UPDATED from 250 to 300
+      'Case Report': 300          // UPDATED from 250 to 300
     };
 
     const wordCount = submissionData.abstract_content.trim().split(/\s+/).length;
-    const limit = wordLimits[submissionData.presentation_type];
+    const limit = wordLimits[submissionData.presentation_type] || 300; // Default 300
     
-    if (limit && wordCount > limit) {
+    if (wordCount > limit) {
       console.log('❌ Word count exceeded:', wordCount, 'limit:', limit);
       return NextResponse.json(
         { 
@@ -124,13 +127,27 @@ export async function POST(request) {
       );
     }
 
-    // Prepare abstract data for database
+    // 🚀 NEW: Validate category
+    const validCategories = ['Hematology', 'Oncology', 'InPHOG', 'Nursing', 'HSCT'];
+    if (!validCategories.includes(submissionData.category)) {
+      console.log('❌ Invalid category:', submissionData.category);
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: `Invalid category. Must be one of: ${validCategories.join(', ')}` 
+        },
+        { status: 400 }
+      );
+    }
+
+    // 🚀 UPDATED: Prepare abstract data for database with category
     const abstractData = {
       user_id: decoded?.userId || 1, // Default to 1 if no auth
       title: submissionData.title,
       presenter_name: submissionData.presenter_name,
       institution_name: submissionData.institution_name,
       presentation_type: submissionData.presentation_type,
+      category: submissionData.category,           // 🚀 NEW: Category field
       abstract_content: submissionData.abstract_content,
       co_authors: submissionData.co_authors || '',
       registration_id: submissionData.registration_id || '',
@@ -147,11 +164,11 @@ export async function POST(request) {
       abstractData.file_path = `/uploads/${Date.now()}-${submissionData.file.name}`;
     }
 
-    console.log('✅ Validation passed, creating abstract in PostgreSQL...');
+    console.log('✅ Validation passed, creating abstract in PostgreSQL with category:', abstractData.category);
 
     // Create abstract in database
     const newAbstract = await createAbstract(abstractData);
-    console.log('✅ Abstract created successfully:', newAbstract.id);
+    console.log('✅ Abstract created successfully:', newAbstract.id, 'Category:', newAbstract.category);
 
     // Send confirmation email (async, don't wait)
     try {
@@ -159,6 +176,7 @@ export async function POST(request) {
         abstractId: newAbstract.id,
         title: newAbstract.title,
         author: newAbstract.presenter_name,
+        category: newAbstract.category, // 🚀 NEW: Include category in email
         email: submissionData.userEmail || decoded?.email || 'not-provided@example.com',
         institution: newAbstract.institution_name,
         submissionDate: newAbstract.submission_date
@@ -182,10 +200,12 @@ export async function POST(request) {
     return NextResponse.json({
       success: true,
       message: 'Abstract submitted successfully',
+      abstractId: newAbstract.id, // 🚀 FIX: Add abstractId for frontend
       abstract: {
         id: newAbstract.id,
         title: newAbstract.title,
         presenter_name: newAbstract.presenter_name,
+        category: newAbstract.category,     // 🚀 NEW: Include category in response
         status: newAbstract.status,
         submission_date: newAbstract.submission_date,
         abstract_number: newAbstract.abstract_number
@@ -226,9 +246,10 @@ export async function GET(request) {
     // 🚀 FIX: Use searchParams instead of request.url for better static compatibility
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
+    const category = searchParams.get('category'); // 🚀 NEW: Category filter
     const limit = parseInt(searchParams.get('limit') || '100');
     
-    console.log('📊 [API] Filters - Status:', status, 'Limit:', limit);
+    console.log('📊 [API] Filters - Status:', status, 'Category:', category, 'Limit:', limit);
     
     // Get abstracts from PostgreSQL with proper field mapping
     let abstracts = await getAllAbstracts();
@@ -242,6 +263,15 @@ export async function GET(request) {
         abstract.status && abstract.status.toLowerCase() === status.toLowerCase()
       );
       console.log(`🔍 [API] Filtered ${originalCount} → ${abstracts.length} with status: ${status}`);
+    }
+
+    // 🚀 NEW: Filter by category if provided
+    if (category && category !== 'all') {
+      const originalCount = abstracts.length;
+      abstracts = abstracts.filter(abstract => 
+        abstract.category && abstract.category.toLowerCase() === category.toLowerCase()
+      );
+      console.log(`🔍 [API] Filtered ${originalCount} → ${abstracts.length} with category: ${category}`);
     }
     
     // Sort by submission date (newest first)
@@ -264,7 +294,7 @@ export async function GET(request) {
       console.log(`📋 [API] Limited results from ${originalCount} to ${limit}`);
     }
     
-    // Calculate statistics safely
+    // 🚀 UPDATED: Calculate statistics with category breakdown
     let stats;
     try {
       const allAbstracts = await getAllAbstracts();
@@ -274,7 +304,16 @@ export async function GET(request) {
         pending: allAbstracts.filter(a => (a.status || 'pending').toLowerCase() === 'pending').length,
         approved: allAbstracts.filter(a => (a.status || 'pending').toLowerCase() === 'approved').length,
         rejected: allAbstracts.filter(a => (a.status || 'pending').toLowerCase() === 'rejected').length,
-        final_submitted: allAbstracts.filter(a => (a.status || 'pending').toLowerCase() === 'final_submitted').length
+        final_submitted: allAbstracts.filter(a => (a.status || 'pending').toLowerCase() === 'final_submitted').length,
+        
+        // 🚀 NEW: Category-wise statistics
+        byCategory: {
+          hematology: allAbstracts.filter(a => (a.category || 'hematology').toLowerCase() === 'hematology').length,
+          oncology: allAbstracts.filter(a => (a.category || 'hematology').toLowerCase() === 'oncology').length,
+          inphog: allAbstracts.filter(a => (a.category || 'hematology').toLowerCase() === 'inphog').length,
+          nursing: allAbstracts.filter(a => (a.category || 'hematology').toLowerCase() === 'nursing').length,
+          hsct: allAbstracts.filter(a => (a.category || 'hematology').toLowerCase() === 'hsct').length
+        }
       };
       
       console.log('📊 [API] Statistics calculated:', stats);
@@ -285,7 +324,14 @@ export async function GET(request) {
         pending: 0,
         approved: 0,
         rejected: 0,
-        final_submitted: 0
+        final_submitted: 0,
+        byCategory: {
+          hematology: 0,
+          oncology: 0,
+          inphog: 0,
+          nursing: 0,
+          hsct: 0
+        }
       };
     }
     
@@ -302,12 +348,14 @@ export async function GET(request) {
         email: abstract.email || 'N/A',
         mobile_no: abstract.mobile_no || abstract.phone || abstract.mobile || 'N/A',
         status: abstract.status || 'pending',
-        category: abstract.category || abstract.presentation_type || 'Free Paper',
-        presentation_type: abstract.presentation_type || abstract.category || 'Free Paper',
+        category: abstract.category || 'Hematology',                    // 🚀 NEW: Ensure category exists
+        categoryType: abstract.categoryType || abstract.category || 'Hematology', // Alternative field
+        presentation_type: abstract.presentation_type || 'Free Paper',
         
         // Ensure safe string operations
         statusLower: (abstract.status || 'pending').toLowerCase(),
-        presentationTypeLower: (abstract.presentation_type || abstract.category || 'free paper').toLowerCase(),
+        presentationTypeLower: (abstract.presentation_type || 'free paper').toLowerCase(),
+        categoryLower: (abstract.category || 'hematology').toLowerCase(), // 🚀 NEW: Category lowercase
         
         // Ensure dates are valid
         submission_date: abstract.submission_date || new Date().toISOString(),
@@ -344,6 +392,7 @@ export async function GET(request) {
       timestamp: new Date().toISOString(),
       filters: {
         status: status || 'all',
+        category: category || 'all', // 🚀 NEW: Include category in filters
         limit: limit
       },
       
@@ -354,7 +403,8 @@ export async function GET(request) {
     console.log('✅ [API] GET request successful:', {
       abstractsReturned: response.count,
       totalInDatabase: stats.total,
-      statusFilter: status || 'all'
+      statusFilter: status || 'all',
+      categoryFilter: category || 'all' // 🚀 NEW: Log category filter
     });
     
     return NextResponse.json(response, {
@@ -384,7 +434,14 @@ export async function GET(request) {
         total: 0,
         pending: 0,
         approved: 0,
-        rejected: 0
+        rejected: 0,
+        byCategory: {
+          hematology: 0,
+          oncology: 0,
+          inphog: 0,
+          nursing: 0,
+          hsct: 0
+        }
       },
       
       // Error metadata
@@ -396,7 +453,7 @@ export async function GET(request) {
   }
 }
 
-// PUT - Update abstract
+// 🚀 ENHANCED: PUT - Update abstract with category support
 export async function PUT(request) {
   try {
     console.log('📝 PUT request received');
@@ -426,6 +483,34 @@ export async function PUT(request) {
       );
     }
 
+    // 🚀 NEW: Validate category if provided in update
+    if (updateData.category) {
+      const validCategories = ['Hematology', 'Oncology', 'InPHOG', 'Nursing', 'HSCT'];
+      if (!validCategories.includes(updateData.category)) {
+        return NextResponse.json(
+          { success: false, message: `Invalid category. Must be one of: ${validCategories.join(', ')}` },
+          { status: 400 }
+        );
+      }
+    }
+
+    // 🚀 UPDATED: Validate word count with 300 limit if abstract_content is being updated
+    if (updateData.abstract_content) {
+      const wordCount = updateData.abstract_content.trim().split(/\s+/).length;
+      const limit = 300; // Updated limit for all types
+      
+      if (wordCount > limit) {
+        console.log('❌ Word count exceeded during update:', wordCount, 'limit:', limit);
+        return NextResponse.json(
+          { 
+            success: false, 
+            error: `Abstract exceeds word limit. ${wordCount} words (max ${limit})` 
+          },
+          { status: 400 }
+        );
+      }
+    }
+
     // Check if abstract exists and belongs to user
     const existingAbstract = await getAbstractById(id);
     if (!existingAbstract) {
@@ -450,14 +535,30 @@ export async function PUT(request) {
       );
     }
 
+    console.log('🔄 Updating abstract with data:', Object.keys(updateData));
+    if (updateData.category) {
+      console.log('📝 Category update:', existingAbstract.category, '→', updateData.category);
+    }
+
     const updatedAbstract = await updateAbstract(id, updateData);
 
-    console.log('✅ Abstract updated successfully:', id);
+    console.log('✅ Abstract updated successfully:', id, 'New category:', updatedAbstract.category);
 
     return NextResponse.json({
       success: true,
       message: 'Abstract updated successfully',
-      abstract: updatedAbstract
+      abstract: {
+        id: updatedAbstract.id,
+        title: updatedAbstract.title,
+        presenter_name: updatedAbstract.presenter_name,
+        institution_name: updatedAbstract.institution_name,
+        presentation_type: updatedAbstract.presentation_type,
+        category: updatedAbstract.category,        // 🚀 NEW: Include category in response
+        abstract_content: updatedAbstract.abstract_content,
+        co_authors: updatedAbstract.co_authors,
+        status: updatedAbstract.status,
+        updated_at: updatedAbstract.updated_at
+      }
     });
 
   } catch (error) {

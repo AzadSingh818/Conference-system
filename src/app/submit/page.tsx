@@ -29,6 +29,7 @@ export default function SubmitAbstract() {
     setSubmissionId(generateSubmissionId());
   }, []);
   
+  // 🚀 UPDATED: Form data with category field
   const [formData, setFormData] = useState({
     title: '',
     presenter_name: '',
@@ -102,7 +103,7 @@ export default function SubmitAbstract() {
         return;
       }
 
-      // Prepare submission data with user context
+      // 🚀 UPDATED: Prepare submission data with category
       const submissionData = {
         title: formData.title,
         presenter_name: formData.presenter_name,
@@ -121,7 +122,7 @@ export default function SubmitAbstract() {
         userEmail: user?.email
       };
 
-      console.log('🚀 Submitting to API:', submissionData);
+      console.log('🚀 Submitting to API with category:', submissionData.category);
 
       // Call real API
       const response = await fetch('/api/abstracts', {
@@ -139,6 +140,7 @@ export default function SubmitAbstract() {
       if (response.ok && result.success) {
         setMessage(`✅ Abstract submitted successfully! 
         📝 Abstract ID: ${result.abstractId}
+        🏷️ Category: ${formData.category}
         📂 Files: ${uploadedFiles.length} attached
         🎯 Status: Pending Review
         📧 Confirmation email sent to ${user?.email}`);
@@ -149,7 +151,7 @@ export default function SubmitAbstract() {
           presenter_name: user?.name || '',
           institution_name: user?.institution || '',
           presentation_type: 'Free Paper',
-          category: 'Hematology',
+          category: 'Hematology', // 🚀 NEW: Reset to default category
           abstract_content: '',
           co_authors: '',
           registration_payment_id: '',
@@ -213,7 +215,7 @@ export default function SubmitAbstract() {
           </button>
         </div>
 
-        {/* Guidelines Panel - PRD Mandatory */}
+        {/* Guidelines Panel - UPDATED with 300 word limit */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <div className="flex items-center mb-4">
             <AlertCircle className="h-5 w-5 text-orange-500 mr-2" />
@@ -242,6 +244,7 @@ export default function SubmitAbstract() {
               <div className="flex items-start">
                 <FileText className="h-4 w-4 text-purple-500 mr-2 mt-0.5 flex-shrink-0" />
                 <div>
+                  {/* 🚀 UPDATED: Changed from 250 to 300 words */}
                   <p><strong>Word Limit: 300 words (All Categories)</strong></p>
                   <ul className="ml-4 mt-1 space-y-1 text-xs">
                     <li>• Free Paper: 300 words</li>
@@ -407,6 +410,9 @@ export default function SubmitAbstract() {
                   <option value="Nursing">Nursing</option>
                   <option value="HSCT">HSCT</option>
                 </select>
+                <p className="mt-1 text-xs text-gray-500">
+                  Select the primary medical category for your research
+                </p>
               </div>
 
               {/* Co-Authors */}
@@ -425,7 +431,7 @@ export default function SubmitAbstract() {
               </div>
             </div>
 
-            {/* Abstract Content with Validation */}
+            {/* Abstract Content with 300 Word Validation */}
             <div className="space-y-4">
               <ValidatedTextArea
                 value={formData.abstract_content}
@@ -434,7 +440,7 @@ export default function SubmitAbstract() {
                 onValidationChange={handleWordCountValidation}
                 disabled={loading}
                 required={true}
-                placeholder="Enter your complete abstract here..."
+                placeholder="Enter your complete abstract here... (300 words maximum)"
               />
             </div>
 
@@ -479,7 +485,7 @@ export default function SubmitAbstract() {
               
               {!wordCountValid && (
                 <p className="text-sm text-red-600 text-center mt-2">
-                  Please ensure your abstract meets word limit requirements
+                  Please ensure your abstract meets word limit requirements (300 words maximum)
                 </p>
               )}
             </div>
@@ -490,7 +496,7 @@ export default function SubmitAbstract() {
         <div className="mt-6 text-center text-gray-500">
           <p>🚀 APBMT Abstract Submission System v2.0</p>
           <p>⚡ Built with Next.js 15 + PRD Compliant Implementation</p>
-          <p className="text-xs mt-1">🔄 Check browser console for detailed logs</p>
+          <p className="text-xs mt-1">🔄 Word Limit: 300 words • Category Support: Enabled</p>
         </div>
       </div>
     </div>
