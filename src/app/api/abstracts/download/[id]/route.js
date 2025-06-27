@@ -34,7 +34,7 @@ export async function GET(request, { params }) {
       status: abstract.status
     });
 
-    // ✅ ENHANCED FILE SEARCH - Don't give up if database has NULL values
+    // ✅ SPECIFIC FILE SEARCH - Only files uploaded during abstract submission
     let filePath = null;
     let fileName = null;
     
@@ -48,9 +48,9 @@ export async function GET(request, { params }) {
       fileName = abstract.file_name;
     }
     
-    // Search strategy 2: Even if database has NULL, search for files by abstract ID
+    // Search strategy 2: Search ONLY in abstract-specific folders (not random files)
     if (!filePath || !fs.existsSync(filePath)) {
-      console.log('🔍 Database file info missing or file not found, searching uploads folder...');
+      console.log('🔍 Database file info missing, searching for abstract-specific upload...');
       
       const uploadsPath = path.join(process.cwd(), 'public', 'uploads', 'abstracts');
       
@@ -60,71 +60,39 @@ export async function GET(request, { params }) {
           return fs.statSync(fullPath).isDirectory();
         });
         
-        console.log('📁 Searching in subfolders:', subfolders.length);
+        console.log('📁 Searching in abstract-specific subfolders...');
         
-        // Search for files that might belong to this abstract
+        // Search ONLY in folders that specifically belong to this abstract
         for (const folder of subfolders) {
-          const folderPath = path.join(uploadsPath, folder);
+          // ✅ STRICT MATCHING - Only folders linked to this specific abstract
+          const isAbstractFolder = 
+            folder.includes(`abstract_${abstract.id}`) ||           // Folder named with abstract ID
+            folder.includes(abstract.abstract_number) ||             // Folder named with abstract number
+            folder.includes(`sub_`) && folder.includes(abstract.id); // Submission folder with abstract ID
           
-          try {
-            const files = fs.readdirSync(folderPath);
-            console.log(`📂 Checking folder ${folder}, files:`, files);
+          if (isAbstractFolder) {
+            const folderPath = path.join(uploadsPath, folder);
             
-            for (const file of files) {
-              const fullFilePath = path.join(folderPath, file);
+            try {
+              const files = fs.readdirSync(folderPath);
+              console.log(`📂 Checking abstract folder ${folder}, files:`, files);
               
-              // Check if this file belongs to our abstract
-              // Search by abstract ID, submission ID, or folder name containing abstract info
-              if (folder.includes(`abstract_${abstract.id}`) || 
-                  folder.includes(abstract.abstract_number) ||
-                  folder.includes(`sub_`) ||
-                  file.includes(`${abstract.id}_`) ||
-                  files.length === 1) { // If only one file in folder, likely it's the right one
-                
-                filePath = fullFilePath;
-                fileName = abstract.file_name || file; // Use original name if available
-                console.log('✅ Found matching file:', { folder, file, abstract_id: abstract.id });
+              // Look for document files in this specific abstract folder
+              const documentFiles = files.filter(file => {
+                const ext = path.extname(file).toLowerCase();
+                return ['.pdf', '.doc', '.docx', '.txt'].includes(ext);
+              });
+              
+              if (documentFiles.length > 0) {
+                // Take the first document file (should be the submitted file)
+                const abstractFile = documentFiles[0];
+                filePath = path.join(folderPath, abstractFile);
+                fileName = abstract.file_name || abstractFile;
+                console.log('✅ Found abstract submission file:', { folder, file: abstractFile });
                 break;
               }
-            }
-            
-            if (filePath && fs.existsSync(filePath)) break;
-          } catch (dirError) {
-            console.log(`⚠️ Error reading folder ${folder}:`, dirError.message);
-          }
-        }
-      }
-    }
-
-    // Search strategy 3: If still not found, try searching by file extensions
-    if (!filePath || !fs.existsSync(filePath)) {
-      console.log('🔍 Final search: Looking for any PDF/DOC files that might belong to this abstract...');
-      
-      const uploadsPath = path.join(process.cwd(), 'public', 'uploads', 'abstracts');
-      
-      if (fs.existsSync(uploadsPath)) {
-        const subfolders = fs.readdirSync(uploadsPath);
-        
-        for (const folder of subfolders) {
-          const folderPath = path.join(uploadsPath, folder);
-          if (fs.statSync(folderPath).isDirectory()) {
-            const files = fs.readdirSync(folderPath);
-            
-            // Look for common document extensions
-            const documentFiles = files.filter(file => {
-              const ext = path.extname(file).toLowerCase();
-              return ['.pdf', '.doc', '.docx', '.txt'].includes(ext);
-            });
-            
-            if (documentFiles.length > 0) {
-              // If we find document files, take the first one as a candidate
-              const candidateFile = documentFiles[0];
-              const candidatePath = path.join(folderPath, candidateFile);
-              
-              console.log(`📄 Found candidate file: ${candidateFile} in ${folder}`);
-              filePath = candidatePath;
-              fileName = abstract.file_name || candidateFile;
-              break;
+            } catch (dirError) {
+              console.log(`⚠️ Error reading abstract folder ${folder}:`, dirError.message);
             }
           }
         }
