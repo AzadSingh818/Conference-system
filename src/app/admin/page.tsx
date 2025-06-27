@@ -84,17 +84,17 @@ export default function AdminDashboard() {
     try {
       const url = filter === 'all' ? '/api/abstracts' : `/api/abstracts?status=${filter}`
       const response = await fetch(url)
-
+      
       if (response.status === 401) {
         router.push('/admin/login')
         return
       }
-
+      
       if (response.ok) {
         const data = await response.json()
         setAbstracts(data.abstracts)
         setStats(data.stats)
-
+        
         // Calculate category stats
         const calculatedCategoryStats = calculateCategoryStats(data.abstracts)
         setCategoryStats(calculatedCategoryStats)
@@ -116,12 +116,12 @@ export default function AdminDashboard() {
       })
 
       if (response.ok) {
-        setAbstracts(prev =>
-          prev.map(abstract =>
+        setAbstracts(prev => 
+          prev.map(abstract => 
             abstract.id === id ? { ...abstract, status } : abstract
           )
         )
-
+        
         setStats(prev => {
           const newStats = { ...prev }
           const oldAbstract = abstracts.find(a => a.id === id)
@@ -129,18 +129,18 @@ export default function AdminDashboard() {
             if (oldAbstract.status === 'pending') newStats.pending--
             else if (oldAbstract.status === 'approved') newStats.approved--
             else if (oldAbstract.status === 'rejected') newStats.rejected--
-
+            
             if (status === 'approved') newStats.approved++
             else if (status === 'rejected') newStats.rejected++
           }
           return newStats
         })
-
+        
         setSelectedAbstract(null)
         setShowReviewModal(false)
-
+        
         // Recalculate category stats
-        const updatedAbstracts = abstracts.map(abstract =>
+        const updatedAbstracts = abstracts.map(abstract => 
           abstract.id === id ? { ...abstract, status } : abstract
         )
         const calculatedCategoryStats = calculateCategoryStats(updatedAbstracts)
@@ -179,10 +179,10 @@ export default function AdminDashboard() {
       })
 
       const response = await fetch(`/api/export?${params}`)
-
+      
       if (response.ok) {
         const contentDisposition = response.headers.get('content-disposition')
-        const filename = contentDisposition
+        const filename = contentDisposition 
           ? contentDisposition.split('filename=')[1]?.replace(/"/g, '')
           : `APBMT_Abstracts_${new Date().toISOString().split('T')[0]}.xlsx`
 
@@ -212,7 +212,7 @@ export default function AdminDashboard() {
   const handleBulkStatusUpdate = async (abstractIds: any, status: string, comments: string = '') => {
     try {
       console.log('🔍 Debug - Input parameters:', { abstractIds, status, comments });
-
+      
       // 🔧 SAFE CHECK: Validate input parameters
       if (!abstractIds) {
         console.error('❌ abstractIds is undefined or null');
@@ -228,7 +228,7 @@ export default function AdminDashboard() {
 
       // 🔧 SAFE ARRAY CONVERSION: Handle all possible input types
       let idsArray: string[] = [];
-
+      
       if (typeof abstractIds === 'string') {
         // Single ID as string
         idsArray = [abstractIds];
@@ -250,10 +250,10 @@ export default function AdminDashboard() {
       }
 
       console.log('✅ Valid IDs array:', idsArray);
-
+      
       // Show loading state
       setLoading(true);
-
+      
       const requestBody = {
         abstractIds: idsArray,
         status,
@@ -263,10 +263,10 @@ export default function AdminDashboard() {
       };
 
       console.log('📤 Request body:', requestBody);
-
+      
       const response = await fetch('/api/abstracts/bulk-update', {
         method: 'POST',
-        headers: {
+        headers: { 
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(requestBody)
@@ -293,7 +293,7 @@ export default function AdminDashboard() {
 
       if (success && successful > 0) {
         console.log(`✅ Successfully updated ${successful} abstracts`);
-
+        
         // Show detailed success notification
         alert(`✅ Bulk Update Successful!
 
@@ -304,12 +304,12 @@ export default function AdminDashboard() {
 ${comments ? `• Comments: ${comments}` : ''}
 
 The page will refresh to show updated data.`);
-
+        
         // Refresh the data
         await fetchAbstracts();
-
+        
         return { success: true, successful, failed };
-
+        
       } else {
         const errorMsg = data?.message || data?.error || `Update failed. Expected: ${idsArray.length}, Successful: ${successful}`;
         console.error('❌ Update failed:', errorMsg);
@@ -318,7 +318,7 @@ The page will refresh to show updated data.`);
 
     } catch (error: any) {
       console.error('❌ Bulk update error:', error);
-
+      
       // Show detailed error information
       alert(`❌ Bulk Update Failed!
 
@@ -337,7 +337,7 @@ Troubleshooting:
 4. Try refreshing the page
 
 Contact administrator if problem persists.`);
-
+      
       return { success: false, error: error.message };
     } finally {
       setLoading(false);
@@ -347,14 +347,14 @@ Contact administrator if problem persists.`);
   // 🔧 UPDATED HELPER FUNCTIONS WITH BETTER ERROR HANDLING
   const handleBulkApprove = async (selectedIds: string[]) => {
     console.log('🔍 handleBulkApprove called with:', selectedIds);
-
+    
     if (!selectedIds || (Array.isArray(selectedIds) && selectedIds.length === 0)) {
       alert('⚠️ Please select abstracts to approve\n\nHow to select:\n1. Use checkboxes in the abstract list\n2. Select one or more abstracts\n3. Try the bulk approve action');
       return;
     }
-
+    
     const comments = prompt('Enter approval comments (optional):') || 'Bulk approved by admin';
-
+    
     if (confirm(`Approve ${Array.isArray(selectedIds) ? selectedIds.length : 1} selected abstracts?`)) {
       return await handleBulkStatusUpdate(selectedIds, 'approved', comments);
     }
@@ -362,19 +362,19 @@ Contact administrator if problem persists.`);
 
   const handleBulkReject = async (selectedIds: string[]) => {
     console.log('🔍 handleBulkReject called with:', selectedIds);
-
+    
     if (!selectedIds || (Array.isArray(selectedIds) && selectedIds.length === 0)) {
       alert('⚠️ Please select abstracts to reject\n\nHow to select:\n1. Use checkboxes in the abstract list\n2. Select one or more abstracts\n3. Try the bulk reject action');
       return;
     }
-
+    
     const comments = prompt('Enter rejection reason (required):');
-
+    
     if (!comments) {
       alert('❌ Rejection reason is required\n\nPlease provide a reason for rejection to help authors understand the decision.');
       return;
     }
-
+    
     if (confirm(`Reject ${Array.isArray(selectedIds) ? selectedIds.length : 1} selected abstracts?`)) {
       return await handleBulkStatusUpdate(selectedIds, 'rejected', comments);
     }
@@ -382,14 +382,14 @@ Contact administrator if problem persists.`);
 
   const handleBulkPending = async (selectedIds: string[]) => {
     console.log('🔍 handleBulkPending called with:', selectedIds);
-
+    
     if (!selectedIds || (Array.isArray(selectedIds) && selectedIds.length === 0)) {
       alert('⚠️ Please select abstracts to mark as pending\n\nHow to select:\n1. Use checkboxes in the abstract list\n2. Select one or more abstracts\n3. Try the bulk pending action');
       return;
     }
-
+    
     const comments = prompt('Enter comments (optional):') || 'Marked as pending by admin';
-
+    
     if (confirm(`Mark ${Array.isArray(selectedIds) ? selectedIds.length : 1} selected abstracts as pending?`)) {
       return await handleBulkStatusUpdate(selectedIds, 'pending', comments);
     }
@@ -398,15 +398,15 @@ Contact administrator if problem persists.`);
   // 🔧 INDIVIDUAL APPROVE FUNCTION
   const handleIndividualApprove = async (abstractId: string, comments: string = '') => {
     console.log('🔍 Individual approve called for:', abstractId);
-
+    
     try {
       setUpdatingStatus(abstractId);
-
+      
       const finalComments = comments || prompt('Enter approval comments (optional):') || 'Approved by admin';
-
+      
       if (confirm(`Approve this abstract?`)) {
         const result = await handleBulkStatusUpdate([abstractId], 'approved', finalComments);
-
+        
         if (result && result.success) {
           console.log('✅ Individual approve successful');
           // Auto refresh will happen in handleBulkStatusUpdate
@@ -420,88 +420,88 @@ Contact administrator if problem persists.`);
     }
   };
 
-  // 🔧 UPDATED: Enhanced Individual Download Function
-  const handleIndividualDownload = async (abstract: Abstract) => {
-    console.log('📥 Individual download called for:', abstract.id);
-
-    if (!abstract.id) {
-      alert('❌ Cannot download: Abstract ID missing');
+ // 🔧 UPDATED: Enhanced Individual Download Function
+const handleIndividualDownload = async (abstract: Abstract) => {
+  console.log('📥 Individual download called for:', abstract.id);
+  
+  if (!abstract.id) {
+    alert('❌ Cannot download: Abstract ID missing');
+    return;
+  }
+  
+  try {
+    setLoading(true);
+    
+    // Call the download API
+    const response = await fetch(`/api/abstracts/download/${abstract.id}`);
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      
+      if (response.status === 404) {
+        // Show detailed error information
+        const errorMsg = errorData.error || 'File not found';
+        alert(`📄 Download Failed\n\nAbstract ID: ${abstract.id}\nTitle: ${abstract.title}\nAuthor: ${abstract.author}\n\nError: ${errorMsg}\n\nPossible causes:\n• File was not uploaded\n• File was deleted\n• Download API not configured\n\nPlease check the server logs for more details.`);
+        
+        // Log detailed error for debugging
+        console.error('📥 Download failed - Details:', {
+          abstractId: abstract.id,
+          title: abstract.title,
+          errorData,
+          responseStatus: response.status
+        });
+      } else {
+        throw new Error(`HTTP ${response.status}: ${errorData.error || response.statusText}`);
+      }
       return;
     }
-
-    try {
-      setLoading(true);
-
-      // Call the download API
-      const response = await fetch(`/api/abstracts/download/${abstract.id}`);
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-
-        if (response.status === 404) {
-          // Show detailed error information
-          const errorMsg = errorData.error || 'File not found';
-          alert(`📄 Download Failed\n\nAbstract ID: ${abstract.id}\nTitle: ${abstract.title}\nAuthor: ${abstract.author}\n\nError: ${errorMsg}\n\nPossible causes:\n• File was not uploaded\n• File was deleted\n• Download API not configured\n\nPlease check the server logs for more details.`);
-
-          // Log detailed error for debugging
-          console.error('📥 Download failed - Details:', {
-            abstractId: abstract.id,
-            title: abstract.title,
-            errorData,
-            responseStatus: response.status
-          });
-        } else {
-          throw new Error(`HTTP ${response.status}: ${errorData.error || response.statusText}`);
-        }
-        return;
-      }
-
-      // Process successful download
-      const blob = await response.blob();
-      const contentDisposition = response.headers.get('Content-Disposition');
-      let fileName = `Abstract_${abstract.id}.pdf`;
-
-      // Extract filename from response headers
-      if (contentDisposition) {
-        const match = contentDisposition.match(/filename="([^"]+)"/);
-        if (match) fileName = match[1];
-      }
-
-      // Create and trigger download
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = fileName;
-      link.style.display = 'none';
-      document.body.appendChild(link);
-      link.click();
-
-      // Cleanup
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(link);
-
-      console.log('✅ Download successful:', fileName);
-
-      // Show success message (optional)
-      // alert(`✅ Downloaded: ${fileName}`);
-
-    } catch (error: any) {
-      console.error('📥 Download error:', error);
-      alert(`❌ Download Failed: ${error.message}\n\nPlease contact administrator if the problem persists.`);
-    } finally {
-      setLoading(false);
+    
+    // Process successful download
+    const blob = await response.blob();
+    const contentDisposition = response.headers.get('Content-Disposition');
+    let fileName = `Abstract_${abstract.id}.pdf`;
+    
+    // Extract filename from response headers
+    if (contentDisposition) {
+      const match = contentDisposition.match(/filename="([^"]+)"/);
+      if (match) fileName = match[1];
     }
-  };
+    
+    // Create and trigger download
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    link.click();
+    
+    // Cleanup
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(link);
+    
+    console.log('✅ Download successful:', fileName);
+    
+    // Show success message (optional)
+    // alert(`✅ Downloaded: ${fileName}`);
+    
+  } catch (error: any) {
+    console.error('📥 Download error:', error);
+    alert(`❌ Download Failed: ${error.message}\n\nPlease contact administrator if the problem persists.`);
+  } finally {
+    setLoading(false);
+  }
+};
 
   // 🧪 DEBUG FUNCTION - Add this for testing
   const debugBulkUpdate = async () => {
     console.log('🧪 Running debug test...');
-
+    
     // Test with the actual abstract ID from your console output
     const testId = "17486939990261rjsh8yx3";
-
+    
     console.log('Testing with ID:', testId);
-
+    
     try {
       const result = await handleBulkStatusUpdate([testId], 'approved', 'Debug test approval');
       console.log('✅ Debug test result:', result);
@@ -626,7 +626,7 @@ Contact administrator if problem persists.`);
         <CategoryWiseStatisticsTable stats={stats} categoryStats={categoryStats} />
 
         {/* PRD SECTION 3.4.3 - Enhanced Abstract Review Interface */}
-        <EnhancedAbstractTable
+        <EnhancedAbstractTable 
           abstracts={abstracts}
           onSelectAbstract={handleSelectAbstract}
           onUpdateStatus={updateStatus}
@@ -690,7 +690,7 @@ function EmailTestComponent() {
       })
 
       const data = await response.json()
-
+      
       if (data.success) {
         setResult('✅ Test email sent successfully! Check your inbox.')
       } else {
@@ -746,10 +746,11 @@ function EmailTestComponent() {
       </button>
 
       {result && (
-        <div className={`p-3 rounded-lg text-sm ${result.includes('✅') ? 'bg-green-100 text-green-700' :
-            result.includes('❌') ? 'bg-red-100 text-red-700' :
-              'bg-blue-100 text-blue-700'
-          }`}>
+        <div className={`p-3 rounded-lg text-sm ${
+          result.includes('✅') ? 'bg-green-100 text-green-700' : 
+          result.includes('❌') ? 'bg-red-100 text-red-700' : 
+          'bg-blue-100 text-blue-700'
+        }`}>
           {result}
         </div>
       )}
