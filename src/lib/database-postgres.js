@@ -1,5 +1,5 @@
 // src/lib/database-postgres.js
-// 🚀 COMPLETE FIXED VERSION - Replace entire file content
+// 🚀 EMERGENCY FIX: Make category optional for backward compatibility
 
 import { Pool } from 'pg';
 
@@ -19,6 +19,24 @@ pool.on('connect', () => {
 pool.on('error', (err) => {
   console.error('❌ PostgreSQL connection error:', err);
 });
+
+// 🚀 NEW: Check if category column exists
+async function checkCategoryColumnExists(client) {
+  try {
+    const query = `
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'abstracts' AND column_name = 'category'
+    `;
+    const result = await client.query(query);
+    const exists = result.rows.length > 0;
+    console.log(`📊 Category column exists: ${exists}`);
+    return exists;
+  } catch (error) {
+    console.error('❌ Error checking category column:', error);
+    return false;
+  }
+}
 
 // ========================================
 // USER MANAGEMENT FUNCTIONS
@@ -95,53 +113,101 @@ export async function getUserById(userId) {
 }
 
 // ========================================
-// ABSTRACT MANAGEMENT FUNCTIONS - UPDATED WITH CATEGORY
+// 🚀 UPDATED: ABSTRACT MANAGEMENT WITH CATEGORY COMPATIBILITY
 // ========================================
 
 export async function createAbstract(abstractData) {
   const client = await pool.connect();
   try {
     console.log('🔄 Creating abstract for user:', abstractData.user_id);
-    console.log('📝 Abstract data:', { title: abstractData.title, category: abstractData.category });
+    
+    // 🚀 NEW: Check if category column exists
+    const hasCategoryColumn = await checkCategoryColumnExists(client);
     
     // Generate unique abstract number
     const abstractNumber = `ABST-${Date.now()}-${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
     
-    // 🚀 NEW: Updated query to include category field
-    const query = `
-      INSERT INTO abstracts (
-        user_id, title, presenter_name, institution_name, presentation_type,
-        category, abstract_content, co_authors, file_path, file_name, file_size,
-        status, abstract_number, registration_id, submission_date, updated_at
-      )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, NOW(), NOW())
-      RETURNING *
-    `;
+    let query, values;
     
-    // 🚀 NEW: Added category in values array
-    const values = [
-      abstractData.user_id,
-      abstractData.title,
-      abstractData.presenter_name,
-      abstractData.institution_name || null,
-      abstractData.presentation_type,
-      abstractData.category || 'Hematology', // 🚀 NEW: Category field with default
-      abstractData.abstract_content,
-      abstractData.co_authors || null,
-      abstractData.file_path || null,
-      abstractData.file_name || null,
-      abstractData.file_size || null,
-      'pending',
-      abstractNumber,
-      abstractData.registration_id || null
-    ];
+    if (hasCategoryColumn) {
+      // 🚀 NEW SCHEMA: Include category field
+      console.log('✅ Using schema with category column');
+      query = `
+        INSERT INTO abstracts (
+          user_id, title, presenter_name, institution_name, presentation_type,
+          category, abstract_content, co_authors, file_path, file_name, file_size,
+          status, abstract_number, registration_id, submission_date, updated_at
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, NOW(), NOW())
+        RETURNING *
+      `;
+      
+      values = [
+        abstractData.user_id,
+        abstractData.title,
+        abstractData.presenter_name,
+        abstractData.institution_name || null,
+        abstractData.presentation_type,
+        abstractData.category || 'Hematology', // 🚀 NEW: Category field
+        abstractData.abstract_content,
+        abstractData.co_authors || null,
+        abstractData.file_path || null,
+        abstractData.file_name || null,
+        abstractData.file_size || null,
+        'pending',
+        abstractNumber,
+        abstractData.registration_id || null
+      ];
+    } else {
+      // 🚀 BACKWARD COMPATIBILITY: Old schema without category
+      console.log('⚠️ Using legacy schema without category column');
+      query = `
+        INSERT INTO abstracts (
+          user_id, title, presenter_name, institution_name, presentation_type,
+          abstract_content, co_authors, file_path, file_name, file_size,
+          status, abstract_number, registration_id, submission_date, updated_at
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW(), NOW())
+        RETURNING *
+      `;
+      
+      values = [
+        abstractData.user_id,
+        abstractData.title,
+        abstractData.presenter_name,
+        abstractData.institution_name || null,
+        abstractData.presentation_type,
+        abstractData.abstract_content,
+        abstractData.co_authors || null,
+        abstractData.file_path || null,
+        abstractData.file_name || null,
+        abstractData.file_size || null,
+        'pending',
+        abstractNumber,
+        abstractData.registration_id || null
+      ];
+    }
     
     const result = await client.query(query, values);
-    console.log('✅ Abstract created successfully with category:', result.rows[0].category);
+    
+    // 🚀 NEW: Add default category to response if column doesn't exist
+    if (!hasCategoryColumn && result.rows[0]) {
+      result.rows[0].category = abstractData.category || 'Hematology';
+    }
+    
+    console.log('✅ Abstract created successfully:', result.rows[0].id);
+    console.log('📝 Category included:', result.rows[0].category || 'N/A (legacy mode)');
+    
     return result.rows[0];
     
   } catch (error) {
     console.error('❌ Error creating abstract:', error);
+    console.error('📊 Full error details:', {
+      message: error.message,
+      code: error.code,
+      detail: error.detail,
+      position: error.position
+    });
     throw error;
   } finally {
     client.release();
@@ -158,16 +224,26 @@ export async function getAbstractsByUserId(userId) {
       throw new Error('Invalid user ID provided');
     }
     
-    // 🚀 NEW: Added category in SELECT query
-    const query = `
-      SELECT * FROM abstracts 
-      WHERE user_id = $1 
-      ORDER BY submission_date DESC
-    `;
+    // 🚀 NEW: Check if category column exists for SELECT query
+    const hasCategoryColumn = await checkCategoryColumnExists(client);
+    
+    let query;
+    if (hasCategoryColumn) {
+      query = `SELECT * FROM abstracts WHERE user_id = $1 ORDER BY submission_date DESC`;
+    } else {
+      query = `SELECT * FROM abstracts WHERE user_id = $1 ORDER BY submission_date DESC`;
+    }
     
     const result = await client.query(query, [id]);
-    console.log(`📊 Found ${result.rows.length} abstracts for user ${id}`);
-    return result.rows;
+    
+    // 🚀 NEW: Add default category for legacy records
+    const abstracts = result.rows.map(abstract => ({
+      ...abstract,
+      category: abstract.category || 'Hematology' // Default category for legacy records
+    }));
+    
+    console.log(`📊 Found ${abstracts.length} abstracts for user ${id}`);
+    return abstracts;
     
   } catch (error) {
     console.error('❌ Error getting user abstracts:', error);
@@ -179,118 +255,123 @@ export async function getAbstractsByUserId(userId) {
 
 // 🚀 CRITICAL FIX: ADD MISSING getUserAbstracts FUNCTION
 export async function getUserAbstracts(userId) {
-  // This is an alias for getAbstractsByUserId for compatibility with other parts of the system
   console.log('🔄 getUserAbstracts called for user:', userId);
   return await getAbstractsByUserId(userId);
 }
 
-// 🚀 UPDATED: getAllAbstracts with category field mapping
+// 🚀 UPDATED: getAllAbstracts with category compatibility
 export async function getAllAbstracts() {
   const client = await pool.connect();
   try {
-    // 🚀 NEW: Added category in SELECT query
-    const query = `
-      SELECT 
-        a.id,
-        a.title,
-        a.presenter_name,
-        a.institution_name,
-        a.presentation_type,
-        a.category,
-        a.abstract_content,
-        a.co_authors,
-        a.status,
-        a.abstract_number,
-        a.registration_id,
-        a.submission_date,
-        a.updated_at,
-        a.reviewer_comments,
-        a.file_path,
-        a.file_name,
-        a.file_size,
-        u.email,
-        u.phone,
-        u.full_name as user_full_name
-      FROM abstracts a 
-      LEFT JOIN users u ON a.user_id = u.id 
-      ORDER BY a.submission_date DESC
-    `;
+    // 🚀 NEW: Check if category column exists
+    const hasCategoryColumn = await checkCategoryColumnExists(client);
+    
+    let query;
+    if (hasCategoryColumn) {
+      query = `
+        SELECT 
+          a.id, a.title, a.presenter_name, a.institution_name, a.presentation_type,
+          a.category, a.abstract_content, a.co_authors, a.status, a.abstract_number,
+          a.registration_id, a.submission_date, a.updated_at, a.reviewer_comments,
+          a.file_path, a.file_name, a.file_size,
+          u.email, u.phone, u.full_name as user_full_name
+        FROM abstracts a 
+        LEFT JOIN users u ON a.user_id = u.id 
+        ORDER BY a.submission_date DESC
+      `;
+    } else {
+      // Legacy query without category
+      query = `
+        SELECT 
+          a.id, a.title, a.presenter_name, a.institution_name, a.presentation_type,
+          a.abstract_content, a.co_authors, a.status, a.abstract_number,
+          a.registration_id, a.submission_date, a.updated_at, a.reviewer_comments,
+          a.file_path, a.file_name, a.file_size,
+          u.email, u.phone, u.full_name as user_full_name
+        FROM abstracts a 
+        LEFT JOIN users u ON a.user_id = u.id 
+        ORDER BY a.submission_date DESC
+      `;
+    }
     
     const result = await client.query(query);
     console.log(`📊 Retrieved ${result.rows.length} total abstracts`);
     
-    // 🎯 UPDATED: Map database fields to frontend expected format with category
+    // 🎯 UPDATED: Map database fields with category compatibility
     const mappedAbstracts = result.rows.map((abstract, index) => ({
       // Core fields
       id: abstract.id,
       title: abstract.title || 'Untitled',
       
-      // 🚀 FIX: Multiple name mappings for presenter
+      // Multiple name mappings for presenter
       presenter_name: abstract.presenter_name || 'Unknown',
-      author: abstract.presenter_name || 'Unknown', // Frontend expects 'author'
+      author: abstract.presenter_name || 'Unknown',
       
-      // 🚀 FIX: Multiple email mappings
+      // Multiple email mappings
       email: abstract.email || 'N/A',
       
-      // 🚀 FIX: Multiple phone/mobile mappings
+      // Multiple phone/mobile mappings
       phone: abstract.phone || 'N/A',
-      mobile_no: abstract.phone || 'N/A', // Frontend expects 'mobile_no'
-      mobile: abstract.phone || 'N/A', // Alternative field name
+      mobile_no: abstract.phone || 'N/A',
+      mobile: abstract.phone || 'N/A',
       
-      // 🚀 FIX: Multiple title mappings
+      // Multiple title mappings
       abstract_title: abstract.title || 'Untitled',
       
-      // 🚀 FIX: Multiple co-author mappings
+      // Multiple co-author mappings
       co_authors: abstract.co_authors || 'N/A',
-      coAuthors: abstract.co_authors || 'N/A', // Alternative field name
+      coAuthors: abstract.co_authors || 'N/A',
       
-      // 🚀 FIX: Multiple institution mappings
+      // Multiple institution mappings
       institution_name: abstract.institution_name || 'N/A',
-      institution: abstract.institution_name || 'N/A', // Alternative field name
-      affiliation: abstract.institution_name || 'N/A', // Alternative field name
+      institution: abstract.institution_name || 'N/A',
+      affiliation: abstract.institution_name || 'N/A',
       
-      // 🚀 FIX: Multiple registration ID mappings
+      // Multiple registration ID mappings
       registration_id: abstract.registration_id || 'N/A',
-      registrationId: abstract.registration_id || 'N/A', // Alternative field name
+      registrationId: abstract.registration_id || 'N/A',
       
-      // 🚀 FIX: Status with safe operations
+      // Status with safe operations
       status: abstract.status || 'pending',
       
-      // 🚀 FIX: Multiple presentation type mappings
+      // Multiple presentation type mappings
       presentation_type: abstract.presentation_type || 'Free Paper',
       
-      // 🚀 NEW: Category field mappings
-      category: abstract.category || 'Hematology', // NEW: Category field
-      categoryType: abstract.category || 'Hematology', // Alternative field name
+      // 🚀 UPDATED: Category with fallback for legacy records
+      category: abstract.category || 'Hematology', // Default for legacy records
+      categoryType: abstract.category || 'Hematology',
       
-      // 🚀 FIX: Multiple abstract number mappings
+      // Multiple abstract number mappings
       abstract_number: abstract.abstract_number || `ABST-${String(index + 1).padStart(3, '0')}`,
-      abstractNumber: abstract.abstract_number || `ABST-${String(index + 1).padStart(3, '0')}`, // Alternative field name
+      abstractNumber: abstract.abstract_number || `ABST-${String(index + 1).padStart(3, '0')}`,
       
-      // 🚀 FIX: Multiple date mappings
+      // Multiple date mappings
       submission_date: abstract.submission_date,
-      submissionDate: abstract.submission_date, // Alternative field name
+      submissionDate: abstract.submission_date,
       updated_at: abstract.updated_at,
       
       // Other fields
       reviewer_comments: abstract.reviewer_comments,
       file_path: abstract.file_path,
       file_name: abstract.file_name,
-      fileName: abstract.file_name, // Alternative field name
+      fileName: abstract.file_name,
       file_size: abstract.file_size,
-      fileSize: abstract.file_size, // Alternative field name
+      fileSize: abstract.file_size,
       
-      // 🚀 FIX: Multiple abstract content mappings
+      // Multiple abstract content mappings
       abstract_content: abstract.abstract_content || '',
-      abstract: abstract.abstract_content || '', // Frontend expects 'abstract'
+      abstract: abstract.abstract_content || '',
       
-      // 🚀 FIX: Safe string operations for filtering
+      // Safe string operations for filtering
       statusLower: (abstract.status || 'pending').toLowerCase(),
       presentationTypeLower: (abstract.presentation_type || 'free paper').toLowerCase(),
-      categoryLower: (abstract.category || 'hematology').toLowerCase(), // NEW: Category lowercase for filtering
+      categoryLower: (abstract.category || 'hematology').toLowerCase(),
       
       // Additional computed fields
-      hasFile: !!(abstract.file_path || abstract.file_name)
+      hasFile: !!(abstract.file_path || abstract.file_name),
+      
+      // 🚀 NEW: Indicate if this is legacy data
+      isLegacyRecord: !abstract.category
     }));
     
     return mappedAbstracts;
@@ -313,7 +394,6 @@ export async function getAbstractById(abstractId) {
       throw new Error('Invalid abstract ID provided');
     }
     
-    // 🚀 NEW: Added category in SELECT query
     const query = `
       SELECT a.*, u.email, u.phone, u.full_name as user_full_name
       FROM abstracts a 
@@ -322,6 +402,14 @@ export async function getAbstractById(abstractId) {
     `;
     
     const result = await client.query(query, [id]);
+    
+    if (result.rows.length > 0) {
+      // Add default category if missing (legacy record)
+      const abstract = result.rows[0];
+      if (!abstract.category) {
+        abstract.category = 'Hematology';
+      }
+    }
     
     console.log(`📊 Abstract ${id} lookup:`, result.rows.length > 0 ? 'Found' : 'Not found');
     return result.rows[0] || null;
@@ -371,7 +459,7 @@ export async function updateAbstractStatus(abstractId, status, comments = null) 
 }
 
 // ========================================
-// 🚀 CRITICAL FIX: BULK UPDATE FUNCTION - PROPER RETURN FORMAT
+// 🚀 BULK UPDATE FUNCTION
 // ========================================
 
 export async function bulkUpdateAbstractStatus(abstractIds, status, comments = null) {
@@ -416,8 +504,6 @@ export async function bulkUpdateAbstractStatus(abstractIds, status, comments = n
     const updatedCount = result.rows.length;
     console.log(`✅ [PostgreSQL] Successfully updated ${updatedCount} abstracts in bulk`);
     
-    // 🎯 CRITICAL FIX: Return ARRAY directly (not object)
-    // Frontend expects array of updated abstracts
     return result.rows;
     
   } catch (error) {
@@ -432,7 +518,7 @@ export async function bulkUpdateAbstractStatus(abstractIds, status, comments = n
   }
 }
 
-// 🚀 UPDATED: updateAbstract function with category support
+// 🚀 UPDATED: updateAbstract function with category compatibility
 export async function updateAbstract(abstractId, updateData) {
   const client = await pool.connect();
   try {
@@ -445,17 +531,25 @@ export async function updateAbstract(abstractId, updateData) {
     
     console.log(`🔄 Updating abstract ${id} with data:`, Object.keys(updateData));
     
+    // 🚀 NEW: Check if category column exists
+    const hasCategoryColumn = await checkCategoryColumnExists(client);
+    
     // Build dynamic query based on provided fields
     const updateFields = [];
     const values = [];
     let paramCount = 1;
     
-    // Handle each possible update field - UPDATED WITH CATEGORY
-    const allowedFields = [
+    // Handle each possible update field
+    let allowedFields = [
       'title', 'presenter_name', 'institution_name', 'presentation_type',
-      'category', 'abstract_content', 'co_authors', 'file_path', 'file_name', 
+      'abstract_content', 'co_authors', 'file_path', 'file_name', 
       'file_size', 'status', 'reviewer_comments', 'final_file_path'
     ];
+    
+    // 🚀 NEW: Only include category if column exists
+    if (hasCategoryColumn) {
+      allowedFields.push('category');
+    }
     
     for (const field of allowedFields) {
       if (updateData[field] !== undefined) {
@@ -488,7 +582,14 @@ export async function updateAbstract(abstractId, updateData) {
       throw new Error(`Abstract with ID ${id} not found`);
     }
     
-    console.log('✅ Abstract updated successfully with category:', result.rows[0].category);
+    // Add default category if missing
+    if (!hasCategoryColumn && result.rows[0]) {
+      result.rows[0].category = updateData.category || 'Hematology';
+    }
+    
+    console.log('✅ Abstract updated successfully');
+    console.log('📝 Category support:', hasCategoryColumn ? 'Enabled' : 'Legacy mode');
+    
     return result.rows[0];
     
   } catch (error) {
@@ -530,7 +631,7 @@ export async function deleteAbstract(abstractId) {
 }
 
 // ========================================
-// STATISTICS AND REPORTING - UPDATED WITH CATEGORY
+// STATISTICS AND REPORTING
 // ========================================
 
 export async function getStatistics() {
@@ -538,19 +639,38 @@ export async function getStatistics() {
   try {
     console.log('🔄 Fetching statistics...');
     
-    // 🚀 UPDATED: Statistics by presentation type
-    const query = `
-      SELECT 
-        presentation_type,
-        category,
-        COUNT(*) as total_count,
-        COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending_count,
-        COUNT(CASE WHEN status = 'approved' THEN 1 END) as approved_count,
-        COUNT(CASE WHEN status = 'rejected' THEN 1 END) as rejected_count
-      FROM abstracts 
-      GROUP BY presentation_type, category
-      ORDER BY presentation_type, category
-    `;
+    // Check if category column exists for statistics
+    const hasCategoryColumn = await checkCategoryColumnExists(client);
+    
+    let query;
+    if (hasCategoryColumn) {
+      query = `
+        SELECT 
+          presentation_type,
+          category,
+          COUNT(*) as total_count,
+          COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending_count,
+          COUNT(CASE WHEN status = 'approved' THEN 1 END) as approved_count,
+          COUNT(CASE WHEN status = 'rejected' THEN 1 END) as rejected_count
+        FROM abstracts 
+        GROUP BY presentation_type, category
+        ORDER BY presentation_type, category
+      `;
+    } else {
+      // Legacy statistics without category
+      query = `
+        SELECT 
+          presentation_type,
+          'Hematology' as category,
+          COUNT(*) as total_count,
+          COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending_count,
+          COUNT(CASE WHEN status = 'approved' THEN 1 END) as approved_count,
+          COUNT(CASE WHEN status = 'rejected' THEN 1 END) as rejected_count
+        FROM abstracts 
+        GROUP BY presentation_type
+        ORDER BY presentation_type
+      `;
+    }
     
     const result = await client.query(query);
     
@@ -568,27 +688,13 @@ export async function getStatistics() {
     
     const totalResult = await client.query(totalQuery);
     
-    // 🚀 NEW: Statistics by category
-    const categoryQuery = `
-      SELECT 
-        category,
-        COUNT(*) as total_count,
-        COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending_count,
-        COUNT(CASE WHEN status = 'approved' THEN 1 END) as approved_count,
-        COUNT(CASE WHEN status = 'rejected' THEN 1 END) as rejected_count
-      FROM abstracts 
-      GROUP BY category
-      ORDER BY category
-    `;
-    
-    const categoryResult = await client.query(categoryQuery);
-    
     console.log('✅ Statistics retrieved successfully');
+    console.log('📊 Category support in stats:', hasCategoryColumn ? 'Enabled' : 'Legacy mode');
     
     return {
       byCategory: result.rows,
-      byAbstractCategory: categoryResult.rows, // NEW: Category-wise stats
-      totals: totalResult.rows[0]
+      totals: totalResult.rows[0],
+      hasCategorySupport: hasCategoryColumn
     };
     
   } catch (error) {
@@ -635,20 +741,14 @@ export async function initializeDatabase() {
     if (existingTables.includes('users') && existingTables.includes('abstracts')) {
       console.log('✅ Database tables exist and ready');
       
-      // 🚀 NEW: Check if category column exists
-      const columnQuery = `
-        SELECT column_name 
-        FROM information_schema.columns 
-        WHERE table_name = 'abstracts' AND column_name = 'category'
-      `;
+      // Check if category column exists
+      const hasCategoryColumn = await checkCategoryColumnExists(client);
       
-      const columnResult = await client.query(columnQuery);
-      
-      if (columnResult.rows.length === 0) {
-        console.log('⚠️ Category column missing, needs to be added to abstracts table');
-        console.log('📝 Run this SQL: ALTER TABLE abstracts ADD COLUMN category VARCHAR(50) DEFAULT \'Hematology\';');
+      if (!hasCategoryColumn) {
+        console.log('⚠️ Category column missing - running in legacy compatibility mode');
+        console.log('📝 To enable category support, run: ALTER TABLE abstracts ADD COLUMN category VARCHAR(50) DEFAULT \'Hematology\';');
       } else {
-        console.log('✅ Category column exists in abstracts table');
+        console.log('✅ Category column exists - full feature support enabled');
       }
       
       return true;
@@ -694,6 +794,8 @@ export function handleDatabaseError(error, operation) {
     return new Error('Referenced record not found');
   } else if (error.code === '23502') { // Not null violation
     return new Error('Required field is missing');
+  } else if (error.code === '42703') { // Undefined column
+    return new Error('Database schema mismatch - please contact administrator');
   } else {
     return new Error(`Database operation failed: ${error.message}`);
   }
@@ -702,30 +804,33 @@ export function handleDatabaseError(error, operation) {
 // Export pool for direct access if needed
 export { pool };
 
-// 🚀 UPDATED: COMPLETE DEFAULT EXPORT WITH ALL FUNCTIONS INCLUDING CATEGORY SUPPORT
+// 🚀 COMPLETE DEFAULT EXPORT WITH BACKWARD COMPATIBILITY
 export default {
   // User functions
   createUser,
   getUserByEmail,
   getUserById,
   
-  // Abstract functions - UPDATED WITH CATEGORY SUPPORT
+  // Abstract functions with category compatibility
   createAbstract,
   getAbstractsByUserId,
-  getUserAbstracts, // 🚀 CRITICAL: Added missing function
+  getUserAbstracts,
   getAllAbstracts,
   getAbstractById,
   updateAbstractStatus,
-  bulkUpdateAbstractStatus, // 🚀 CRITICAL FUNCTION
-  updateAbstract, // UPDATED WITH CATEGORY
+  bulkUpdateAbstractStatus,
+  updateAbstract,
   deleteAbstract,
   
-  // Statistics and utilities - UPDATED WITH CATEGORY STATS
+  // Statistics and utilities
   getStatistics,
   testConnection,
   initializeDatabase,
   closePool,
   handleDatabaseError,
+  
+  // Utility functions
+  checkCategoryColumnExists,
   
   // Direct pool access
   pool
