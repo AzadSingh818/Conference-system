@@ -1,5 +1,5 @@
 // src/lib/database-postgres.js
-// 🚀 EMERGENCY FIX: Make category optional for backward compatibility
+// 🚀 Database functions with download support
 
 import { Pool } from 'pg';
 
@@ -20,7 +20,7 @@ pool.on('error', (err) => {
   console.error('❌ PostgreSQL connection error:', err);
 });
 
-// 🚀 NEW: Check if category column exists
+// Check if category column exists
 async function checkCategoryColumnExists(client) {
   try {
     const query = `
@@ -113,7 +113,7 @@ export async function getUserById(userId) {
 }
 
 // ========================================
-// 🚀 UPDATED: ABSTRACT MANAGEMENT WITH CATEGORY COMPATIBILITY
+// ABSTRACT MANAGEMENT WITH DOWNLOAD SUPPORT
 // ========================================
 
 export async function createAbstract(abstractData) {
@@ -121,7 +121,7 @@ export async function createAbstract(abstractData) {
   try {
     console.log('🔄 Creating abstract for user:', abstractData.user_id);
     
-    // 🚀 NEW: Check if category column exists
+    // Check if category column exists
     const hasCategoryColumn = await checkCategoryColumnExists(client);
     
     // Generate unique abstract number
@@ -130,7 +130,7 @@ export async function createAbstract(abstractData) {
     let query, values;
     
     if (hasCategoryColumn) {
-      // 🚀 NEW SCHEMA: Include category field
+      // NEW SCHEMA: Include category field
       console.log('✅ Using schema with category column');
       query = `
         INSERT INTO abstracts (
@@ -148,7 +148,7 @@ export async function createAbstract(abstractData) {
         abstractData.presenter_name,
         abstractData.institution_name || null,
         abstractData.presentation_type,
-        abstractData.category || 'Hematology', // 🚀 NEW: Category field
+        abstractData.category || 'Hematology',
         abstractData.abstract_content,
         abstractData.co_authors || null,
         abstractData.file_path || null,
@@ -159,7 +159,7 @@ export async function createAbstract(abstractData) {
         abstractData.registration_id || null
       ];
     } else {
-      // 🚀 BACKWARD COMPATIBILITY: Old schema without category
+      // BACKWARD COMPATIBILITY: Old schema without category
       console.log('⚠️ Using legacy schema without category column');
       query = `
         INSERT INTO abstracts (
@@ -190,7 +190,7 @@ export async function createAbstract(abstractData) {
     
     const result = await client.query(query, values);
     
-    // 🚀 NEW: Add default category to response if column doesn't exist
+    // Add default category to response if column doesn't exist
     if (!hasCategoryColumn && result.rows[0]) {
       result.rows[0].category = abstractData.category || 'Hematology';
     }
@@ -224,7 +224,7 @@ export async function getAbstractsByUserId(userId) {
       throw new Error('Invalid user ID provided');
     }
     
-    // 🚀 NEW: Check if category column exists for SELECT query
+    // Check if category column exists for SELECT query
     const hasCategoryColumn = await checkCategoryColumnExists(client);
     
     let query;
@@ -236,7 +236,7 @@ export async function getAbstractsByUserId(userId) {
     
     const result = await client.query(query, [id]);
     
-    // 🚀 NEW: Add default category for legacy records
+    // Add default category for legacy records
     const abstracts = result.rows.map(abstract => ({
       ...abstract,
       category: abstract.category || 'Hematology' // Default category for legacy records
@@ -253,17 +253,17 @@ export async function getAbstractsByUserId(userId) {
   }
 }
 
-// 🚀 CRITICAL FIX: ADD MISSING getUserAbstracts FUNCTION
+// CRITICAL FIX: ADD MISSING getUserAbstracts FUNCTION
 export async function getUserAbstracts(userId) {
   console.log('🔄 getUserAbstracts called for user:', userId);
   return await getAbstractsByUserId(userId);
 }
 
-// 🚀 UPDATED: getAllAbstracts with category compatibility
+// ✅ ENHANCED: getAllAbstracts with file information for download
 export async function getAllAbstracts() {
   const client = await pool.connect();
   try {
-    // 🚀 NEW: Check if category column exists
+    // Check if category column exists
     const hasCategoryColumn = await checkCategoryColumnExists(client);
     
     let query;
@@ -297,7 +297,7 @@ export async function getAllAbstracts() {
     const result = await client.query(query);
     console.log(`📊 Retrieved ${result.rows.length} total abstracts`);
     
-    // 🎯 UPDATED: Map database fields with category compatibility
+    // Map database fields with category compatibility
     const mappedAbstracts = result.rows.map((abstract, index) => ({
       // Core fields
       id: abstract.id,
@@ -337,7 +337,7 @@ export async function getAllAbstracts() {
       // Multiple presentation type mappings
       presentation_type: abstract.presentation_type || 'Free Paper',
       
-      // 🚀 UPDATED: Category with fallback for legacy records
+      // Category with fallback for legacy records
       category: abstract.category || 'Hematology', // Default for legacy records
       categoryType: abstract.category || 'Hematology',
       
@@ -352,6 +352,8 @@ export async function getAllAbstracts() {
       
       // Other fields
       reviewer_comments: abstract.reviewer_comments,
+      
+      // ✅ ENHANCED: File fields for download functionality
       file_path: abstract.file_path,
       file_name: abstract.file_name,
       fileName: abstract.file_name,
@@ -370,7 +372,7 @@ export async function getAllAbstracts() {
       // Additional computed fields
       hasFile: !!(abstract.file_path || abstract.file_name),
       
-      // 🚀 NEW: Indicate if this is legacy data
+      // Indicate if this is legacy data
       isLegacyRecord: !abstract.category
     }));
     
@@ -384,35 +386,93 @@ export async function getAllAbstracts() {
   }
 }
 
+// ✅ ENHANCED: getAbstractById with file information for download
 export async function getAbstractById(abstractId) {
   const client = await pool.connect();
   try {
-    // Convert to integer if string
-    const id = typeof abstractId === 'string' ? parseInt(abstractId, 10) : abstractId;
-    
-    if (isNaN(id)) {
-      throw new Error('Invalid abstract ID provided');
+    // Convert to integer if string, but also handle string IDs
+    let id = abstractId;
+    if (typeof abstractId === 'string' && /^\d+$/.test(abstractId)) {
+      id = parseInt(abstractId, 10);
     }
     
-    const query = `
-      SELECT a.*, u.email, u.phone, u.full_name as user_full_name
-      FROM abstracts a 
-      LEFT JOIN users u ON a.user_id = u.id 
-      WHERE a.id = $1
-    `;
+    console.log(`🔍 Looking up abstract with ID: ${id} (type: ${typeof id})`);
     
-    const result = await client.query(query, [id]);
+    // Try both integer and string ID formats
+    const queries = [
+      `
+        SELECT a.*, u.email, u.phone, u.full_name as user_full_name
+        FROM abstracts a 
+        LEFT JOIN users u ON a.user_id = u.id 
+        WHERE a.id = $1
+      `,
+      `
+        SELECT a.*, u.email, u.phone, u.full_name as user_full_name
+        FROM abstracts a 
+        LEFT JOIN users u ON a.user_id = u.id 
+        WHERE CAST(a.id AS TEXT) = $1
+      `
+    ];
     
-    if (result.rows.length > 0) {
-      // Add default category if missing (legacy record)
-      const abstract = result.rows[0];
-      if (!abstract.category) {
-        abstract.category = 'Hematology';
+    let result = null;
+    
+    // Try with the original ID first
+    for (const query of queries) {
+      try {
+        result = await client.query(query, [id]);
+        if (result.rows.length > 0) {
+          console.log(`✅ Abstract found using query type: ${typeof id}`);
+          break;
+        }
+      } catch (queryError) {
+        console.log(`⚠️ Query failed with ID ${id}:`, queryError.message);
       }
     }
     
-    console.log(`📊 Abstract ${id} lookup:`, result.rows.length > 0 ? 'Found' : 'Not found');
-    return result.rows[0] || null;
+    if (!result || result.rows.length === 0) {
+      console.log(`❌ Abstract ${id} not found in database`);
+      return null;
+    }
+    
+    const abstract = result.rows[0];
+    
+    // Add default category if missing (legacy record)
+    if (!abstract.category) {
+      abstract.category = 'Hematology';
+    }
+    
+    // ✅ Enhanced mapping for download functionality
+    const enhancedAbstract = {
+      ...abstract,
+      
+      // Ensure all required fields for download
+      id: abstract.id,
+      title: abstract.title || 'Untitled',
+      presenter_name: abstract.presenter_name || 'Unknown',
+      author: abstract.presenter_name || 'Unknown',
+      email: abstract.email || 'N/A',
+      
+      // File information for download
+      file_path: abstract.file_path,
+      file_name: abstract.file_name,
+      file_size: abstract.file_size,
+      hasFile: !!(abstract.file_path || abstract.file_name),
+      
+      // Additional mappings
+      abstract_number: abstract.abstract_number,
+      submission_date: abstract.submission_date,
+      category: abstract.category || 'Hematology'
+    };
+    
+    console.log(`📊 Abstract ${id} details:`, {
+      id: enhancedAbstract.id,
+      title: enhancedAbstract.title,
+      file_name: enhancedAbstract.file_name,
+      file_path: enhancedAbstract.file_path,
+      hasFile: enhancedAbstract.hasFile
+    });
+    
+    return enhancedAbstract;
     
   } catch (error) {
     console.error('❌ Error getting abstract by ID:', error);
@@ -458,10 +518,7 @@ export async function updateAbstractStatus(abstractId, status, comments = null) 
   }
 }
 
-// ========================================
-// 🚀 BULK UPDATE FUNCTION
-// ========================================
-
+// BULK UPDATE FUNCTION
 export async function bulkUpdateAbstractStatus(abstractIds, status, comments = null) {
   const client = await pool.connect();
   
@@ -518,7 +575,6 @@ export async function bulkUpdateAbstractStatus(abstractIds, status, comments = n
   }
 }
 
-// 🚀 UPDATED: updateAbstract function with category compatibility
 export async function updateAbstract(abstractId, updateData) {
   const client = await pool.connect();
   try {
@@ -531,7 +587,7 @@ export async function updateAbstract(abstractId, updateData) {
     
     console.log(`🔄 Updating abstract ${id} with data:`, Object.keys(updateData));
     
-    // 🚀 NEW: Check if category column exists
+    // Check if category column exists
     const hasCategoryColumn = await checkCategoryColumnExists(client);
     
     // Build dynamic query based on provided fields
@@ -546,7 +602,7 @@ export async function updateAbstract(abstractId, updateData) {
       'file_size', 'status', 'reviewer_comments', 'final_file_path'
     ];
     
-    // 🚀 NEW: Only include category if column exists
+    // Only include category if column exists
     if (hasCategoryColumn) {
       allowedFields.push('category');
     }
@@ -804,19 +860,19 @@ export function handleDatabaseError(error, operation) {
 // Export pool for direct access if needed
 export { pool };
 
-// 🚀 COMPLETE DEFAULT EXPORT WITH BACKWARD COMPATIBILITY
+// DEFAULT EXPORT WITH BACKWARD COMPATIBILITY AND DOWNLOAD SUPPORT
 export default {
   // User functions
   createUser,
   getUserByEmail,
   getUserById,
   
-  // Abstract functions with category compatibility
+  // Abstract functions with category compatibility and download support
   createAbstract,
   getAbstractsByUserId,
   getUserAbstracts,
   getAllAbstracts,
-  getAbstractById,
+  getAbstractById, // ✅ Enhanced for download
   updateAbstractStatus,
   bulkUpdateAbstractStatus,
   updateAbstract,
