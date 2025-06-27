@@ -39,6 +39,17 @@ export interface UploadError {
   error: string
 }
 
+// ✅ DOWNLOAD RESPONSE INTERFACE
+export interface DownloadResponse {
+  success: boolean
+  message: string
+  fileUrl?: string
+  fileName?: string
+  fileSize?: number
+  contentType?: string
+  error?: string
+}
+
 // Generate unique submission ID (client-side only)
 export function generateSubmissionId(): string {
   // Avoid hydration issues by using simpler approach
@@ -171,7 +182,153 @@ export async function deleteUploadedFile(submissionId: string, fileName: string)
   }
 }
 
-// Download file
+// ✅ ENHANCED DOWNLOAD FUNCTION
+export async function downloadAbstractFile(
+  abstractId: string | number,
+  fileName?: string
+): Promise<DownloadResponse> {
+  try {
+    console.log('📥 Downloading abstract file:', abstractId);
+    
+    const response = await fetch(`/api/abstracts/download/${abstractId}`)
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Download failed' }));
+      
+      return {
+        success: false,
+        message: `Download failed: ${response.status} ${response.statusText}`,
+        error: errorData.error || 'Unknown error'
+      };
+    }
+
+    // Get file information from headers
+    const contentDisposition = response.headers.get('content-disposition');
+    const contentType = response.headers.get('content-type') || 'application/octet-stream';
+    const contentLength = response.headers.get('content-length');
+    
+    let downloadFileName = fileName || `abstract_${abstractId}.pdf`;
+    
+    if (contentDisposition) {
+      const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+      if (filenameMatch) {
+        downloadFileName = filenameMatch[1];
+      }
+    }
+
+    // Create blob and download
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = downloadFileName;
+    document.body.appendChild(link);
+    link.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(link);
+    
+    console.log('✅ Download successful:', downloadFileName);
+    
+    return {
+      success: true,
+      message: 'File downloaded successfully',
+      fileName: downloadFileName,
+      fileSize: contentLength ? parseInt(contentLength) : undefined,
+      contentType: contentType
+    };
+    
+  } catch (error) {
+    console.error('❌ Download error:', error);
+    
+    return {
+      success: false,
+      message: `Download error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    };
+  }
+}
+
+// ✅ BATCH DOWNLOAD FUNCTION
+export async function downloadMultipleAbstracts(
+  abstractIds: (string | number)[],
+  zipFileName?: string
+): Promise<DownloadResponse> {
+  try {
+    console.log('📥 Downloading multiple abstracts:', abstractIds.length);
+    
+    const downloadPromises = abstractIds.map(async (id, index) => {
+      try {
+        const response = await fetch(`/api/abstracts/download/${id}`);
+        if (response.ok) {
+          const blob = await response.blob();
+          const contentDisposition = response.headers.get('content-disposition');
+          let fileName = `abstract_${id}.pdf`;
+          
+          if (contentDisposition) {
+            const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+            if (filenameMatch) {
+              fileName = filenameMatch[1];
+            }
+          }
+          
+          return { blob, fileName, success: true };
+        } else {
+          return { success: false, error: `Failed to download abstract ${id}` };
+        }
+      } catch (error) {
+        return { success: false, error: `Error downloading abstract ${id}: ${error}` };
+      }
+    });
+    
+    const results = await Promise.all(downloadPromises);
+    const successful = results.filter(r => r.success);
+    const failed = results.filter(r => !r.success);
+    
+    if (successful.length === 0) {
+      return {
+        success: false,
+        message: 'No files could be downloaded',
+        error: 'All downloads failed'
+      };
+    }
+    
+    // For now, download files individually
+    // In the future, you could implement ZIP creation here
+    let downloadCount = 0;
+    for (const result of successful) {
+      if (result.blob && result.fileName) {
+        const url = window.URL.createObjectURL(result.blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = result.fileName;
+        document.body.appendChild(link);
+        link.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(link);
+        downloadCount++;
+        
+        // Add small delay between downloads
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+    }
+    
+    return {
+      success: true,
+      message: `Downloaded ${downloadCount} files successfully${failed.length > 0 ? ` (${failed.length} failed)` : ''}`,
+    };
+    
+  } catch (error) {
+    console.error('❌ Batch download error:', error);
+    
+    return {
+      success: false,
+      message: `Batch download error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    };
+  }
+}
+
+// Download file (generic)
 export function downloadFile(filePath: string, originalName: string): void {
   const link = document.createElement('a')
   link.href = filePath
@@ -180,6 +337,73 @@ export function downloadFile(filePath: string, originalName: string): void {
   document.body.appendChild(link)
   link.click()
   document.body.removeChild(link)
+}
+
+// ✅ ENHANCED DOWNLOAD WITH PROGRESS
+export async function downloadFileWithProgress(
+  url: string,
+  fileName: string,
+  onProgress?: (percentage: number) => void
+): Promise<DownloadResponse> {
+  try {
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      throw new Error(`Download failed: ${response.status} ${response.statusText}`);
+    }
+    
+    const contentLength = response.headers.get('content-length');
+    const total = contentLength ? parseInt(contentLength, 10) : 0;
+    
+    if (!response.body) {
+      throw new Error('Response body is null');
+    }
+    
+    const reader = response.body.getReader();
+    const chunks: Uint8Array[] = [];
+    let received = 0;
+    
+    while (true) {
+      const { done, value } = await reader.read();
+      
+      if (done) break;
+      
+      chunks.push(value);
+      received += value.length;
+      
+      if (onProgress && total > 0) {
+        const percentage = (received / total) * 100;
+        onProgress(Math.round(percentage));
+      }
+    }
+    
+    // Combine chunks
+    const blob = new Blob(chunks);
+    
+    // Download
+    const downloadUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    window.URL.revokeObjectURL(downloadUrl);
+    document.body.removeChild(link);
+    
+    return {
+      success: true,
+      message: 'Download completed successfully',
+      fileName: fileName,
+      fileSize: received
+    };
+    
+  } catch (error) {
+    return {
+      success: false,
+      message: `Download failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    };
+  }
 }
 
 // File type detection
@@ -211,6 +435,12 @@ export function isDocumentFile(fileName: string): boolean {
   return ['.pdf', '.doc', '.docx', '.txt', '.rtf', '.odt'].includes(extension)
 }
 
+// ✅ CHECK IF FILE IS DOWNLOADABLE
+export function isDownloadableFile(fileName: string): boolean {
+  const extension = path.extname(fileName).toLowerCase()
+  return ['.pdf', '.doc', '.docx', '.txt', '.rtf', '.odt', '.jpg', '.jpeg', '.png', '.gif'].includes(extension)
+}
+
 // Format bytes to human readable size
 export function formatBytes(bytes: number, decimals: number = 2): string {
   if (bytes === 0) return '0 Bytes'
@@ -235,7 +465,22 @@ export function createFilePreview(file: File) {
     lastModified: new Date(file.lastModified),
     extension: path.extname(file.name).toLowerCase(),
     isImage: isImageFile(file.name),
-    isDocument: isDocumentFile(file.name)
+    isDocument: isDocumentFile(file.name),
+    isDownloadable: isDownloadableFile(file.name)
+  }
+}
+
+// ✅ CREATE DOWNLOAD PREVIEW
+export function createDownloadPreview(fileName: string, fileSize?: number) {
+  return {
+    name: fileName,
+    size: fileSize || 0,
+    formattedSize: fileSize ? formatBytes(fileSize) : 'Unknown size',
+    category: getFileCategory(fileName),
+    extension: path.extname(fileName).toLowerCase(),
+    isImage: isImageFile(fileName),
+    isDocument: isDocumentFile(fileName),
+    isDownloadable: isDownloadableFile(fileName)
   }
 }
 
@@ -251,6 +496,15 @@ export function validateUploadResponse(response: any): response is UploadRespons
   )
 }
 
+// ✅ VALIDATE DOWNLOAD RESPONSE
+export function validateDownloadResponse(response: any): response is DownloadResponse {
+  return (
+    typeof response === 'object' &&
+    typeof response.success === 'boolean' &&
+    typeof response.message === 'string'
+  )
+}
+
 // Create error response
 export function createErrorResponse(error: string, submissionId: string = 'temp'): UploadResponse {
   return {
@@ -259,6 +513,15 @@ export function createErrorResponse(error: string, submissionId: string = 'temp'
     uploadedFiles: [],
     errors: [{ fileName: 'unknown', error }],
     submissionId
+  }
+}
+
+// ✅ CREATE DOWNLOAD ERROR RESPONSE
+export function createDownloadErrorResponse(error: string): DownloadResponse {
+  return {
+    success: false,
+    message: error,
+    error
   }
 }
 
@@ -276,3 +539,55 @@ export function createSuccessResponse(
     submissionId
   }
 }
+
+// ✅ CREATE DOWNLOAD SUCCESS RESPONSE
+export function createDownloadSuccessResponse(
+  fileName: string,
+  fileSize?: number,
+  contentType?: string
+): DownloadResponse {
+  return {
+    success: true,
+    message: 'File downloaded successfully',
+    fileName,
+    fileSize,
+    contentType
+  }
+}
+
+// ✅ UTILITY FUNCTIONS FOR DOWNLOAD
+export const downloadUtils = {
+  // Check if browser supports downloads
+  isDownloadSupported(): boolean {
+    return typeof window !== 'undefined' && 'document' in window;
+  },
+
+  // Generate download filename with timestamp
+  generateDownloadFilename(originalName: string, prefix: string = 'download'): string {
+    const timestamp = new Date().toISOString().split('T')[0];
+    const extension = path.extname(originalName);
+    const name = path.basename(originalName, extension);
+    return `${prefix}_${name}_${timestamp}${extension}`;
+  },
+
+  // Clean filename for download
+  cleanFilename(filename: string): string {
+    return filename.replace(/[^a-zA-Z0-9.-]/g, '_');
+  },
+
+  // Get MIME type from extension
+  getMimeType(filename: string): string {
+    const extension = path.extname(filename).toLowerCase();
+    const mimeTypes: { [key: string]: string } = {
+      '.pdf': 'application/pdf',
+      '.doc': 'application/msword',
+      '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      '.txt': 'text/plain',
+      '.jpg': 'image/jpeg',
+      '.jpeg': 'image/jpeg',
+      '.png': 'image/png',
+      '.gif': 'image/gif'
+    };
+    return mimeTypes[extension] || 'application/octet-stream';
+  }
+};
