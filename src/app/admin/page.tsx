@@ -208,12 +208,11 @@ export default function AdminDashboard() {
     }
   }
 
-  // 🔧 FIXED BULK UPDATE FUNCTION - All Error Handling Added
+  // BULK UPDATE FUNCTION
   const handleBulkStatusUpdate = async (abstractIds: any, status: string, comments: string = '') => {
     try {
       console.log('🔍 Debug - Input parameters:', { abstractIds, status, comments });
       
-      // 🔧 SAFE CHECK: Validate input parameters
       if (!abstractIds) {
         console.error('❌ abstractIds is undefined or null');
         alert('❌ Error: No abstracts selected. Please select abstracts first.');
@@ -226,23 +225,18 @@ export default function AdminDashboard() {
         return { success: false, error: 'Status is required' };
       }
 
-      // 🔧 SAFE ARRAY CONVERSION: Handle all possible input types
       let idsArray: string[] = [];
       
       if (typeof abstractIds === 'string') {
-        // Single ID as string
         idsArray = [abstractIds];
       } else if (Array.isArray(abstractIds)) {
-        // Already an array
-        idsArray = abstractIds.filter(id => id != null && id !== ''); // Remove null/undefined/empty
+        idsArray = abstractIds.filter(id => id != null && id !== '');
       } else {
-        // Unexpected type
         console.error('❌ Invalid abstractIds type:', typeof abstractIds);
         alert('❌ Error: Invalid selection format');
         return { success: false, error: 'Invalid selection format' };
       }
 
-      // 🔧 VALIDATE ARRAY: Check if we have valid IDs
       if (idsArray.length === 0) {
         console.error('❌ No valid abstract IDs found');
         alert('❌ Error: No valid abstracts selected. Please select abstracts first.');
@@ -251,7 +245,6 @@ export default function AdminDashboard() {
 
       console.log('✅ Valid IDs array:', idsArray);
       
-      // Show loading state
       setLoading(true);
       
       const requestBody = {
@@ -283,7 +276,6 @@ export default function AdminDashboard() {
       const data = await response.json();
       console.log('📊 Bulk update response:', data);
 
-      // Handle multiple response formats with safe access
       const successful = data?.successful || data?.data?.successful || 0;
       const failed = data?.failed || data?.data?.failed || 0;
       const results = data?.results || data?.data?.results || [];
@@ -294,7 +286,6 @@ export default function AdminDashboard() {
       if (success && successful > 0) {
         console.log(`✅ Successfully updated ${successful} abstracts`);
         
-        // Show detailed success notification
         alert(`✅ Bulk Update Successful!
 
 📊 Results:
@@ -305,7 +296,6 @@ ${comments ? `• Comments: ${comments}` : ''}
 
 The page will refresh to show updated data.`);
         
-        // Refresh the data
         await fetchAbstracts();
         
         return { success: true, successful, failed };
@@ -319,7 +309,6 @@ The page will refresh to show updated data.`);
     } catch (error: any) {
       console.error('❌ Bulk update error:', error);
       
-      // Show detailed error information
       alert(`❌ Bulk Update Failed!
 
 Error Details:
@@ -344,7 +333,6 @@ Contact administrator if problem persists.`);
     }
   };
 
-  // 🔧 UPDATED HELPER FUNCTIONS WITH BETTER ERROR HANDLING
   const handleBulkApprove = async (selectedIds: string[]) => {
     console.log('🔍 handleBulkApprove called with:', selectedIds);
     
@@ -395,7 +383,6 @@ Contact administrator if problem persists.`);
     }
   };
 
-  // 🔧 INDIVIDUAL APPROVE FUNCTION
   const handleIndividualApprove = async (abstractId: string, comments: string = '') => {
     console.log('🔍 Individual approve called for:', abstractId);
     
@@ -409,7 +396,6 @@ Contact administrator if problem persists.`);
         
         if (result && result.success) {
           console.log('✅ Individual approve successful');
-          // Auto refresh will happen in handleBulkStatusUpdate
         }
       }
     } catch (error) {
@@ -420,7 +406,6 @@ Contact administrator if problem persists.`);
     }
   };
 
-  // 🔧 INDIVIDUAL REJECT FUNCTION  
   const handleIndividualReject = async (abstractId: string, comments: string = '') => {
     console.log('🔍 Individual reject called for:', abstractId);
     
@@ -440,7 +425,6 @@ Contact administrator if problem persists.`);
         
         if (result && result.success) {
           console.log('✅ Individual reject successful');
-          // Auto refresh will happen in handleBulkStatusUpdate
         }
       }
     } catch (error) {
@@ -451,7 +435,6 @@ Contact administrator if problem persists.`);
     }
   };
 
-  // 🔧 INDIVIDUAL EMAIL FUNCTION (Enhanced)
   const handleIndividualEmail = async (abstract: Abstract, emailType: string = 'custom') => {
     console.log('📧 Individual email called for:', abstract.id, emailType);
     
@@ -504,75 +487,132 @@ Contact administrator if problem persists.`);
     }
   };
 
-  // 🔧 INDIVIDUAL DOWNLOAD FUNCTION (Enhanced)
+  // ✅ ENHANCED DOWNLOAD FUNCTION
   const handleIndividualDownload = async (abstract: Abstract) => {
     console.log('📥 Individual download called for:', abstract.id);
     
     try {
-      // Check if file exists
       if (!abstract.abstractNumber && !abstract.id) {
         alert('❌ Cannot download: Abstract ID missing');
         return;
       }
 
+      // Show loading state
+      const loadingToast = document.createElement('div');
+      loadingToast.innerHTML = `
+        <div style="position: fixed; top: 20px; right: 20px; background: #3B82F6; color: white; padding: 15px; border-radius: 8px; z-index: 9999; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 20px; height: 20px; border: 2px solid #ffffff; border-top: 2px solid transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+            <div>Downloading abstract...</div>
+          </div>
+        </div>
+        <style>
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        </style>
+      `;
+      document.body.appendChild(loadingToast);
+
       // Try the download API
       const response = await fetch(`/api/abstracts/download/${abstract.id}`);
       
+      // Remove loading toast
+      document.body.removeChild(loadingToast);
+      
       if (!response.ok) {
-        // If API doesn't exist, try alternative method
         if (response.status === 404) {
-          // Fallback: try direct file download if file path is available
-          alert(`📄 Download Info:\n\nAbstract ID: ${abstract.id}\nTitle: ${abstract.title}\nAuthor: ${abstract.author}\n\n⚠️ Download API not configured yet.\nFile will be available after setup.`);
+          const errorData = await response.json();
+          
+          alert(`📄 Download Info:
+
+Abstract ID: ${abstract.id}
+Title: ${abstract.title}
+Author: ${abstract.author}
+
+❌ Error: ${errorData.error}
+
+${errorData.details ? `Details: ${errorData.details}` : ''}
+
+${errorData.available_files ? `Available files in system:
+${JSON.stringify(errorData.available_files, null, 2)}` : ''}
+
+Please contact administrator if file should be available.`);
           return;
         }
-        throw new Error(`Download failed: ${response.status}`);
+        throw new Error(`Download failed: ${response.status} ${response.statusText}`);
       }
 
-      // Successful download
+      // Get filename from response headers
+      const contentDisposition = response.headers.get('content-disposition');
+      let filename = `Abstract_${abstract.id}_${abstract.title.substring(0, 30)}.pdf`;
+      
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+        if (filenameMatch) {
+          filename = filenameMatch[1];
+        }
+      }
+
+      // Download the file
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `Abstract_${abstract.id}_${abstract.title.substring(0, 30)}.pdf`;
+      link.download = filename;
       document.body.appendChild(link);
       link.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(link);
       
+      // Show success message
+      const successToast = document.createElement('div');
+      successToast.innerHTML = `
+        <div style="position: fixed; top: 20px; right: 20px; background: #10B981; color: white; padding: 15px; border-radius: 8px; z-index: 9999; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div>✅</div>
+            <div>
+              <div style="font-weight: bold;">Download Successful!</div>
+              <div style="font-size: 14px; opacity: 0.9;">File: ${filename}</div>
+            </div>
+            <button onclick="this.closest('div').parentNode.remove()" style="background: none; border: none; color: white; font-size: 18px; cursor: pointer; margin-left: 10px;">×</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(successToast);
+      
+      // Auto remove success toast
+      setTimeout(() => {
+        if (document.body.contains(successToast)) {
+          document.body.removeChild(successToast);
+        }
+      }, 5000);
+      
       console.log('✅ Download successful');
       
     } catch (error: any) {
       console.error('📥 Download error:', error);
-      alert(`❌ Download failed: ${error.message}\n\nPlease contact administrator.`);
+      
+      alert(`❌ Download Failed!
+
+Error: ${error.message}
+
+Abstract Information:
+• ID: ${abstract.id}
+• Title: ${abstract.title}
+• Author: ${abstract.author}
+
+Troubleshooting:
+1. Check if file was uploaded with the abstract
+2. Verify file exists in uploads folder
+3. Check server logs for detailed error
+4. Contact administrator if problem persists
+
+Technical Details:
+${error.stack ? `Stack: ${error.stack.substring(0, 200)}...` : 'No additional details available'}`);
     }
   };
-
-  // 🧪 DEBUG FUNCTION - Add this for testing
-  const debugBulkUpdate = async () => {
-    console.log('🧪 Running debug test...');
-    
-    // Test with the actual abstract ID from your console output
-    const testId = "17486939990261rjsh8yx3";
-    
-    console.log('Testing with ID:', testId);
-    
-    try {
-      const result = await handleBulkStatusUpdate([testId], 'approved', 'Debug test approval');
-      console.log('✅ Debug test result:', result);
-    } catch (error) {
-      console.error('❌ Debug test failed:', error);
-    }
-  };
-
-  // 🎯 MAKE DEBUG FUNCTION AVAILABLE GLOBALLY
-  if (typeof window !== 'undefined') {
-    (window as any).debugBulkUpdate = debugBulkUpdate;
-    (window as any).handleBulkStatusUpdate = handleBulkStatusUpdate;
-    (window as any).testIndividualApprove = (id: string) => handleIndividualApprove(id, 'Test approval');
-    (window as any).testIndividualReject = (id: string) => handleIndividualReject(id, 'Test rejection');
-    (window as any).testIndividualEmail = (abstract: Abstract) => handleIndividualEmail(abstract, 'test');
-    (window as any).testIndividualDownload = (abstract: Abstract) => handleIndividualDownload(abstract);
-  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -611,7 +651,7 @@ Contact administrator if problem persists.`);
           <div className="flex justify-between items-center py-4">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
-              <p className="text-gray-600">APBMT 2025 - PRD Compliant Conference Management System</p>
+              <p className="text-gray-600">APBMT 2025 - Conference Management System</p>
             </div>
             <div className="flex items-center space-x-4">
               <button
@@ -658,41 +698,23 @@ Contact administrator if problem persists.`);
           </div>
         )}
 
-        {/* 🧪 DEBUG PANEL - Only show in development */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="mb-8 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-            <h3 className="text-lg font-semibold mb-2 text-yellow-800">🧪 Debug Panel</h3>
-            <div className="space-y-2">
-              <button
-                onClick={debugBulkUpdate}
-                className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
-              >
-                🧪 Test Bulk Update
-              </button>
-              <p className="text-sm text-yellow-700">
-                This panel is only visible in development mode. Use the test button to verify bulk update functionality.
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* PRD SECTION 3.4.2 - Real-time Statistics Table */}
+        {/* Statistics Table */}
         <CategoryWiseStatisticsTable stats={stats} categoryStats={categoryStats} />
 
-        {/* PRD SECTION 3.4.3 - Enhanced Abstract Review Interface */}
+        {/* Abstract Review Interface */}
         <EnhancedAbstractTable 
           abstracts={abstracts}
           onSelectAbstract={handleSelectAbstract}
           onUpdateStatus={updateStatus}
-          onSendEmail={handleIndividualEmail}           // ✅ Fixed
-          onDownload={handleIndividualDownload}         // ✅ Fixed
-          onApprove={handleIndividualApprove}           // ✅ New
-          onReject={handleIndividualReject}             // ✅ New
+          onSendEmail={handleIndividualEmail}
+          onDownload={handleIndividualDownload}
+          onApprove={handleIndividualApprove}
+          onReject={handleIndividualReject}
           handleBulkStatusUpdate={handleBulkStatusUpdate}
-          updatingStatus={updatingStatus}              // ✅ Pass loading state
+          updatingStatus={updatingStatus}
         />
 
-        {/* PRD SECTION 3.4.4 - Abstract Review Modal */}
+        {/* Abstract Review Modal */}
         <AbstractReviewModal
           abstract={selectedAbstract}
           isOpen={showReviewModal}
@@ -707,7 +729,7 @@ Contact administrator if problem persists.`);
   )
 }
 
-// Keep existing Email Test Component
+// Email Test Component
 function EmailTestComponent() {
   const [testEmail, setTestEmail] = useState('')
   const [testing, setTesting] = useState(false)

@@ -1,4 +1,4 @@
-// src/components/admin/AdminComponents.jsx - COMPLETE FIXED VERSION
+// src/components/admin/AdminComponents.jsx - COMPLETE VERSION WITH DOWNLOAD
 'use client';
 
 import { useState } from 'react';
@@ -73,7 +73,7 @@ const showToast = (message, type = 'success', duration = 8000) => {
   return toast;
 };
 
-// 🚀 FIXED EMAIL INTEGRATION
+// 🚀 EMAIL INTEGRATION
 export const EmailIntegration = {
   sendEmail: async (abstract, emailType = 'status_update') => {
     try {
@@ -342,7 +342,7 @@ export const CategoryWiseStatisticsTable = ({ stats, categoryStats }) => {
   );
 };
 
-// 2. ENHANCED ABSTRACT TABLE COMPONENT
+// 2. ENHANCED ABSTRACT TABLE COMPONENT WITH DOWNLOAD
 export const EnhancedAbstractTable = ({ 
   abstracts, 
   onSelectAbstract, 
@@ -412,7 +412,56 @@ export const EnhancedAbstractTable = ({
     }
   };
 
-  // BULK EXPORT FUNCTION - COMPLETE
+  // ✅ ENHANCED DOWNLOAD FUNCTION
+  const handleDownloadClick = async (abstract) => {
+    try {
+      console.log('📥 Download clicked for abstract:', abstract.id);
+      
+      if (onDownload) {
+        await onDownload(abstract);
+      } else {
+        // Fallback download implementation
+        const response = await fetch(`/api/abstracts/download/${abstract.id}`);
+        
+        if (!response.ok) {
+          if (response.status === 404) {
+            showToast(`❌ File not found for abstract: ${abstract.title}\n\nPlease check if file was uploaded with this abstract.`, 'error');
+            return;
+          }
+          throw new Error(`Download failed: ${response.status}`);
+        }
+
+        // Get filename from response headers
+        const contentDisposition = response.headers.get('content-disposition');
+        let filename = `Abstract_${abstract.id}_${abstract.title.substring(0, 30)}.pdf`;
+        
+        if (contentDisposition) {
+          const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+          if (filenameMatch) {
+            filename = filenameMatch[1];
+          }
+        }
+
+        // Download the file
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(link);
+        
+        showToast(`✅ Download successful!\n\nFile: ${filename}`, 'success');
+      }
+    } catch (error) {
+      console.error('Download error:', error);
+      showToast(`❌ Download failed: ${error.message}`, 'error');
+    }
+  };
+
+  // BULK EXPORT FUNCTION
   const handleBulkExport = async () => {
     const selected = abstracts.filter(abstract => selectedAbstracts.includes(abstract.id));
     
@@ -496,13 +545,13 @@ export const EnhancedAbstractTable = ({
           {selectedAbstracts.length > 0 && (
             <div className="flex gap-2">
               <button
-                onClick={() => handleBulkStatusUpdate && handleBulkStatusUpdate('approved')}
+                onClick={() => handleBulkStatusUpdate && handleBulkStatusUpdate(selectedAbstracts, 'approved')}
                 className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700"
               >
                 Bulk Approve ({selectedAbstracts.length})
               </button>
               <button
-                onClick={() => handleBulkStatusUpdate && handleBulkStatusUpdate('rejected')}
+                onClick={() => handleBulkStatusUpdate && handleBulkStatusUpdate(selectedAbstracts, 'rejected')}
                 className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
               >
                 Bulk Reject ({selectedAbstracts.length})
@@ -564,10 +613,7 @@ export const EnhancedAbstractTable = ({
                 />
               </th>
               <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Abstract No
-              </th>
-              <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Submission Date
+                S.No
               </th>
               <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Presenter Name
@@ -613,10 +659,7 @@ export const EnhancedAbstractTable = ({
                   />
                 </td>
                 <td className="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  {abstract.abstractNumber || `ABST-${String(index + 1).padStart(3, '0')}`}
-                </td>
-                <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {formatDate(abstract.submissionDate)}
+                  {index + 1}
                 </td>
                 <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900">
                   {abstract.author}
@@ -649,12 +692,16 @@ export const EnhancedAbstractTable = ({
                     <button
                       onClick={() => onSelectAbstract(abstract)}
                       className="bg-blue-600 text-white px-2 py-1 rounded text-xs hover:bg-blue-700"
+                      title="View Details"
                     >
                       View
                     </button>
+                    
+                    {/* ✅ ENHANCED DOWNLOAD BUTTON */}
                     <button
-                      onClick={() => onDownload && onDownload(abstract)}
-                      className="bg-green-600 text-white px-2 py-1 rounded text-xs hover:bg-green-700"
+                      onClick={() => handleDownloadClick(abstract)}
+                      className="bg-purple-600 text-white px-2 py-1 rounded text-xs hover:bg-purple-700"
+                      title="Download Abstract File"
                     >
                       Download
                     </button>
@@ -664,6 +711,7 @@ export const EnhancedAbstractTable = ({
                         onClick={() => onApprove && onApprove(abstract.id)}
                         disabled={updatingStatus === abstract.id}
                         className="bg-green-600 text-white px-2 py-1 rounded text-xs hover:bg-green-700 disabled:opacity-50"
+                        title="Approve Abstract"
                       >
                         {updatingStatus === abstract.id ? '⏳' : 'Approve'}
                       </button>
@@ -674,6 +722,7 @@ export const EnhancedAbstractTable = ({
                         onClick={() => onReject && onReject(abstract.id)}
                         disabled={updatingStatus === abstract.id}
                         className="bg-red-600 text-white px-2 py-1 rounded text-xs hover:bg-red-700 disabled:opacity-50"
+                        title="Reject Abstract"
                       >
                         {updatingStatus === abstract.id ? '⏳' : 'Reject'}
                       </button>
@@ -682,6 +731,7 @@ export const EnhancedAbstractTable = ({
                     <EmailActionButton 
                       abstract={abstract} 
                       buttonType="status"
+                      className="px-2 py-1"
                     />
                   </div>
                 </td>

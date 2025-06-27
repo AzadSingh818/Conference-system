@@ -1,4 +1,4 @@
-// 🔧 CREATE THIS FILE: src/app/api/abstracts/download/[id]/route.js
+// src/app/api/abstracts/download/[id]/route.js
 
 import { NextResponse } from 'next/server';
 import { getAbstractById } from '../../../../../lib/database-postgres.js';
@@ -31,7 +31,7 @@ export async function GET(request, { params }) {
     });
 
     // Check if file information exists
-    if (!abstract.file_path || !abstract.file_name) {
+    if (!abstract.file_path && !abstract.file_name) {
       console.log('❌ No file attached to this abstract');
       return NextResponse.json(
         { error: 'No file attached to this abstract' }, 
@@ -39,10 +39,8 @@ export async function GET(request, { params }) {
       );
     }
 
-    // 🎯 FIXED: Files are in public/uploads/abstracts/sub_xxxxx/ folders
+    // File structure: public/uploads/abstracts/sub_xxxxx/filename.pdf
     let filePath;
-    
-    // File structure: public/uploads/abstracts/sub_1748639559815_70fe789f/filename.pdf
     
     if (abstract.file_path) {
       // If full path is stored in database
@@ -52,19 +50,6 @@ export async function GET(request, { params }) {
         filePath = path.join(process.cwd(), 'public', 'uploads', abstract.file_path);
       }
     } else if (abstract.file_name) {
-      // Need to find the correct subfolder
-      // Pattern: sub_{timestamp}_{hash}
-      const abstractId = abstract.id;
-      const submissionTimestamp = new Date(abstract.submission_date || abstract.submissionDate).getTime();
-      
-      // Try to construct folder name pattern
-      const possibleFolders = [
-        `sub_${abstractId}_${abstract.presenter_name?.toLowerCase().replace(/\s+/g, '')}`,
-        `sub_${submissionTimestamp}_${abstractId}`,
-        `sub_${abstractId}`,
-        abstract.id.toString()
-      ];
-      
       // Search in abstract subfolders
       const uploadsPath = path.join(process.cwd(), 'public', 'uploads', 'abstracts');
       
@@ -80,7 +65,7 @@ export async function GET(request, { params }) {
         
         // Look for abstract ID in folder names
         for (const folder of subfolders) {
-          if (folder.includes(abstractId) || folder.includes(abstract.id)) {
+          if (folder.includes(abstract.id) || folder.includes(abstract.abstract_number)) {
             const testPath = path.join(uploadsPath, folder, abstract.file_name);
             if (fs.existsSync(testPath)) {
               filePath = testPath;
@@ -241,25 +226,3 @@ export async function OPTIONS() {
     }
   });
 }
-
-// 🔧 ALTERNATIVE: If PostgreSQL getAbstractById doesn't work, use this SQLite version
-/*
-// Fallback SQLite version
-import Database from 'better-sqlite3';
-
-function getAbstractByIdSQLite(id) {
-  try {
-    const db = new Database('./database.sqlite');
-    const stmt = db.prepare('SELECT * FROM abstracts WHERE id = ?');
-    const result = stmt.get(id);
-    db.close();
-    return result;
-  } catch (error) {
-    console.error('SQLite query error:', error);
-    throw error;
-  }
-}
-
-// Replace the getAbstractById call with:
-// const abstract = getAbstractByIdSQLite(params.id);
-*/
