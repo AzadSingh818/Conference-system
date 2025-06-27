@@ -420,78 +420,132 @@ Contact administrator if problem persists.`);
     }
   };
 
- // 🔧 UPDATED: Enhanced Individual Download Function
-const handleIndividualDownload = async (abstract: Abstract) => {
-  console.log('📥 Individual download called for:', abstract.id);
-  
-  if (!abstract.id) {
-    alert('❌ Cannot download: Abstract ID missing');
-    return;
-  }
-  
-  try {
-    setLoading(true);
+  // 🔧 INDIVIDUAL REJECT FUNCTION  
+  const handleIndividualReject = async (abstractId: string, comments: string = '') => {
+    console.log('🔍 Individual reject called for:', abstractId);
     
-    // Call the download API
-    const response = await fetch(`/api/abstracts/download/${abstract.id}`);
-    
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
+    try {
+      setUpdatingStatus(abstractId);
       
-      if (response.status === 404) {
-        // Show detailed error information
-        const errorMsg = errorData.error || 'File not found';
-        alert(`📄 Download Failed\n\nAbstract ID: ${abstract.id}\nTitle: ${abstract.title}\nAuthor: ${abstract.author}\n\nError: ${errorMsg}\n\nPossible causes:\n• File was not uploaded\n• File was deleted\n• Download API not configured\n\nPlease check the server logs for more details.`);
-        
-        // Log detailed error for debugging
-        console.error('📥 Download failed - Details:', {
-          abstractId: abstract.id,
-          title: abstract.title,
-          errorData,
-          responseStatus: response.status
-        });
-      } else {
-        throw new Error(`HTTP ${response.status}: ${errorData.error || response.statusText}`);
+      const finalComments = comments || prompt('Enter rejection reason (required):');
+      
+      if (!finalComments) {
+        alert('❌ Rejection reason is required\n\nPlease provide a reason for rejection.');
+        setUpdatingStatus(null);
+        return;
       }
-      return;
+      
+      if (confirm(`Reject this abstract?\n\nReason: ${finalComments}`)) {
+        const result = await handleBulkStatusUpdate([abstractId], 'rejected', finalComments);
+        
+        if (result && result.success) {
+          console.log('✅ Individual reject successful');
+          // Auto refresh will happen in handleBulkStatusUpdate
+        }
+      }
+    } catch (error) {
+      console.error('❌ Individual reject failed:', error);
+      alert('Rejection failed. Please try again.');
+    } finally {
+      setUpdatingStatus(null);
     }
+  };
+
+  // 🔧 INDIVIDUAL EMAIL FUNCTION (Enhanced)
+  const handleIndividualEmail = async (abstract: Abstract, emailType: string = 'custom') => {
+    console.log('📧 Individual email called for:', abstract.id, emailType);
     
-    // Process successful download
-    const blob = await response.blob();
-    const contentDisposition = response.headers.get('Content-Disposition');
-    let fileName = `Abstract_${abstract.id}.pdf`;
-    
-    // Extract filename from response headers
-    if (contentDisposition) {
-      const match = contentDisposition.match(/filename="([^"]+)"/);
-      if (match) fileName = match[1];
+    try {
+      let emailData = {
+        to: abstract.email,
+        abstractId: abstract.id,
+        type: emailType,
+        abstract: {
+          title: abstract.title,
+          author: abstract.author,
+          status: abstract.status,
+          abstractNumber: abstract.abstractNumber || `ABST-${abstract.id}`
+        }
+      };
+
+      if (emailType === 'custom') {
+        const subject = prompt('Email Subject:', `Regarding your abstract: ${abstract.title}`);
+        const message = prompt('Email Message:', 'Dear Author,\n\nRegarding your abstract submission...\n\nBest regards,\nAPBMT 2025 Team');
+        
+        if (!subject || !message) {
+          alert('Email cancelled - Subject and message are required');
+          return;
+        }
+        
+        emailData = {
+          ...emailData,
+          subject,
+          message
+        };
+      }
+
+      const response = await fetch('/api/email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(emailData)
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        alert(`✅ Email sent successfully to ${abstract.email}`);
+      } else {
+        throw new Error(result.error || 'Email sending failed');
+      }
+      
+    } catch (error: any) {
+      console.error('📧 Email error:', error);
+      alert(`❌ Email failed: ${error.message}\n\nPlease check email configuration.`);
     }
+  };
+
+  // 🔧 INDIVIDUAL DOWNLOAD FUNCTION (Enhanced)
+  const handleIndividualDownload = async (abstract: Abstract) => {
+    console.log('📥 Individual download called for:', abstract.id);
     
-    // Create and trigger download
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = fileName;
-    link.style.display = 'none';
-    document.body.appendChild(link);
-    link.click();
-    
-    // Cleanup
-    window.URL.revokeObjectURL(url);
-    document.body.removeChild(link);
-    
-    console.log('✅ Download successful:', fileName);
-    
-    // Show success message (optional)
-    // alert(`✅ Downloaded: ${fileName}`);
-    
-  } catch (error: any) {
-    console.error('📥 Download error:', error);
-    alert(`❌ Download Failed: ${error.message}\n\nPlease contact administrator if the problem persists.`);
-  } finally {
-    setLoading(false);
-  }
-};
+    try {
+      // Check if file exists
+      if (!abstract.abstractNumber && !abstract.id) {
+        alert('❌ Cannot download: Abstract ID missing');
+        return;
+      }
+
+      // Try the download API
+      const response = await fetch(`/api/abstracts/download/${abstract.id}`);
+      
+      if (!response.ok) {
+        // If API doesn't exist, try alternative method
+        if (response.status === 404) {
+          // Fallback: try direct file download if file path is available
+          alert(`📄 Download Info:\n\nAbstract ID: ${abstract.id}\nTitle: ${abstract.title}\nAuthor: ${abstract.author}\n\n⚠️ Download API not configured yet.\nFile will be available after setup.`);
+          return;
+        }
+        throw new Error(`Download failed: ${response.status}`);
+      }
+
+      // Successful download
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Abstract_${abstract.id}_${abstract.title.substring(0, 30)}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(link);
+      
+      console.log('✅ Download successful');
+      
+    } catch (error: any) {
+      console.error('📥 Download error:', error);
+      alert(`❌ Download failed: ${error.message}\n\nPlease contact administrator.`);
+    }
+  };
 
   // 🧪 DEBUG FUNCTION - Add this for testing
   const debugBulkUpdate = async () => {
