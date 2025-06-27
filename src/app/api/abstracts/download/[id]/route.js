@@ -1,4 +1,5 @@
-// 🔧 CREATE THIS FILE: src/app/api/abstracts/download/[id]/route.js
+// src/app/api/abstracts/download/[id]/route.js
+// 🚀 NEW FILE: Create this file to fix download functionality
 
 import { NextResponse } from 'next/server';
 import { getAbstractById } from '../../../../../lib/database-postgres.js';
@@ -31,7 +32,7 @@ export async function GET(request, { params }) {
     });
 
     // Check if file information exists
-    if (!abstract.file_path || !abstract.file_name) {
+    if (!abstract.file_path && !abstract.file_name) {
       console.log('❌ No file attached to this abstract');
       return NextResponse.json(
         { error: 'No file attached to this abstract' }, 
@@ -39,36 +40,33 @@ export async function GET(request, { params }) {
       );
     }
 
-    // 🎯 FIXED: Files are in public/uploads/abstracts/sub_xxxxx/ folders
-    let filePath;
+    // 🔍 Search for file in multiple locations
+    let filePath = null;
     
-    // File structure: public/uploads/abstracts/sub_1748639559815_70fe789f/filename.pdf
+    console.log('🔍 Searching for file:', {
+      file_name: abstract.file_name,
+      file_path: abstract.file_path,
+      abstract_id: abstract.id
+    });
     
+    // Method 1: Use file_path from database
     if (abstract.file_path) {
-      // If full path is stored in database
+      let dbPath;
       if (abstract.file_path.startsWith('/')) {
-        filePath = path.join(process.cwd(), 'public', abstract.file_path);
+        dbPath = path.join(process.cwd(), 'public', abstract.file_path);
       } else {
-        filePath = path.join(process.cwd(), 'public', 'uploads', abstract.file_path);
+        dbPath = path.join(process.cwd(), 'public', abstract.file_path);
       }
-    } else if (abstract.file_name) {
-      // Need to find the correct subfolder
-      // Pattern: sub_{timestamp}_{hash}
-      const abstractId = abstract.id;
-      const submissionTimestamp = new Date(abstract.submission_date || abstract.submissionDate).getTime();
       
-      // Try to construct folder name pattern
-      const possibleFolders = [
-        `sub_${abstractId}_${abstract.presenter_name?.toLowerCase().replace(/\s+/g, '')}`,
-        `sub_${submissionTimestamp}_${abstractId}`,
-        `sub_${abstractId}`,
-        abstract.id.toString()
-      ];
-      
-      // Search in abstract subfolders
+      if (fs.existsSync(dbPath)) {
+        filePath = dbPath;
+        console.log('✅ Found file using database path:', dbPath);
+      }
+    }
+    
+    // Method 2: Search all upload subfolders
+    if (!filePath && abstract.file_name) {
       const uploadsPath = path.join(process.cwd(), 'public', 'uploads', 'abstracts');
-      
-      filePath = null;
       
       if (fs.existsSync(uploadsPath)) {
         const subfolders = fs.readdirSync(uploadsPath).filter(item => {
@@ -76,101 +74,87 @@ export async function GET(request, { params }) {
           return fs.statSync(fullPath).isDirectory();
         });
         
-        console.log('📁 Found subfolders:', subfolders);
+        console.log('📁 Searching in subfolders:', subfolders);
         
-        // Look for abstract ID in folder names
+        // Look for file in all subfolders
         for (const folder of subfolders) {
-          if (folder.includes(abstractId) || folder.includes(abstract.id)) {
-            const testPath = path.join(uploadsPath, folder, abstract.file_name);
-            if (fs.existsSync(testPath)) {
-              filePath = testPath;
-              console.log('✅ Found file in subfolder:', folder);
-              break;
-            }
+          const testPath = path.join(uploadsPath, folder, abstract.file_name);
+          if (fs.existsSync(testPath)) {
+            filePath = testPath;
+            console.log('✅ Found file in subfolder:', folder);
+            break;
           }
         }
         
-        // If not found by ID, search all subfolders for the filename
+        // Advanced search: Look for similar filenames
         if (!filePath) {
           for (const folder of subfolders) {
-            const testPath = path.join(uploadsPath, folder, abstract.file_name);
-            if (fs.existsSync(testPath)) {
-              filePath = testPath;
-              console.log('✅ Found file in subfolder (by filename):', folder);
-              break;
+            const folderPath = path.join(uploadsPath, folder);
+            try {
+              const files = fs.readdirSync(folderPath);
+              for (const file of files) {
+                // Match by partial filename
+                if (file.includes(abstract.file_name) || 
+                    abstract.file_name.includes(file) ||
+                    file.includes(abstract.id.toString())) {
+                  const testPath = path.join(folderPath, file);
+                  if (fs.existsSync(testPath)) {
+                    filePath = testPath;
+                    console.log('✅ Found file by advanced search:', { folder, file });
+                    break;
+                  }
+                }
+              }
+              if (filePath) break;
+            } catch (folderError) {
+              console.log('⚠️ Error reading folder:', folder);
             }
           }
         }
       }
     }
 
-    console.log('📂 Primary file path:', filePath);
-
-    // Check if file exists
+    // Check if file was found
     if (!filePath || !fs.existsSync(filePath)) {
-      console.log('❌ File not found at primary location:', filePath);
+      console.log('❌ File not found in any location');
       
-      // Try direct search in all abstract subfolders
+      // List available files for debugging
       const uploadsPath = path.join(process.cwd(), 'public', 'uploads', 'abstracts');
-      let foundPath = null;
+      const availableFiles = [];
       
       if (fs.existsSync(uploadsPath)) {
         const subfolders = fs.readdirSync(uploadsPath);
-        
         for (const folder of subfolders) {
           const folderPath = path.join(uploadsPath, folder);
           if (fs.statSync(folderPath).isDirectory()) {
-            // Check all files in this subfolder
             const files = fs.readdirSync(folderPath);
-            
-            for (const file of files) {
-              // Match by filename or partial filename
-              if (file === abstract.file_name || 
-                  file.includes(abstract.file_name) ||
-                  abstract.file_name.includes(file)) {
-                foundPath = path.join(folderPath, file);
-                console.log('✅ Found file by search:', foundPath);
-                break;
-              }
-            }
-            
-            if (foundPath) break;
+            availableFiles.push({ folder, files });
           }
         }
       }
       
-      if (!foundPath) {
-        console.log('❌ File not found in any abstract subfolder');
-        
-        // List available files for debugging
-        const availableFiles = [];
-        if (fs.existsSync(uploadsPath)) {
-          const subfolders = fs.readdirSync(uploadsPath);
-          for (const folder of subfolders) {
-            const folderPath = path.join(uploadsPath, folder);
-            if (fs.statSync(folderPath).isDirectory()) {
-              const files = fs.readdirSync(folderPath);
-              availableFiles.push({ folder, files });
-            }
+      return NextResponse.json({
+        error: 'File not found on server',
+        details: {
+          abstract_id: abstract.id,
+          expected_file: abstract.file_name,
+          expected_path: abstract.file_path,
+          searched_locations: [
+            'Database file_path',
+            'All upload subfolders',
+            'Advanced filename matching'
+          ],
+          available_files: availableFiles,
+          troubleshooting: {
+            message: 'File exists in database but missing from uploads folder',
+            solutions: [
+              'Check if file was uploaded correctly',
+              'Verify upload folder permissions',
+              'Ensure file wasn\'t deleted accidentally'
+            ]
           }
         }
-        
-        return NextResponse.json(
-          { 
-            error: 'File not found on server', 
-            details: `File exists in database but missing from uploads folder`,
-            file_name: abstract.file_name,
-            file_path: abstract.file_path,
-            abstract_id: abstract.id,
-            expected_location: 'public/uploads/abstracts/sub_xxxxx/',
-            available_files: availableFiles,
-            search_attempted: true
-          }, 
-          { status: 404 }
-        );
-      }
-      
-      filePath = foundPath;
+      }, { status: 404 });
     }
 
     // Read file
@@ -178,6 +162,7 @@ export async function GET(request, { params }) {
     const fileStats = fs.statSync(filePath);
     
     console.log('✅ File read successfully:', {
+      path: filePath,
       size: fileStats.size,
       name: abstract.file_name
     });
@@ -195,10 +180,11 @@ export async function GET(request, { params }) {
     
     // Clean filename for download
     const cleanFileName = abstract.file_name.replace(/[^a-zA-Z0-9.-]/g, '_');
+    const downloadFileName = `Abstract_${abstract.id}_${cleanFileName}`;
     
     console.log('📤 Serving file download:', {
       original_name: abstract.file_name,
-      clean_name: cleanFileName,
+      download_name: downloadFileName,
       content_type: contentType,
       size: fileBuffer.length
     });
@@ -208,7 +194,7 @@ export async function GET(request, { params }) {
       status: 200,
       headers: {
         'Content-Type': contentType,
-        'Content-Disposition': `attachment; filename="${cleanFileName}"`,
+        'Content-Disposition': `attachment; filename="${downloadFileName}"`,
         'Content-Length': fileBuffer.length.toString(),
         'Cache-Control': 'private, no-cache',
         'X-Abstract-ID': abstract.id.toString(),
@@ -219,14 +205,12 @@ export async function GET(request, { params }) {
   } catch (error) {
     console.error('❌ Download error:', error);
     
-    return NextResponse.json(
-      { 
-        error: 'Download failed', 
-        details: error.message,
-        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
-      }, 
-      { status: 500 }
-    );
+    return NextResponse.json({
+      error: 'Download failed',
+      details: error.message,
+      abstract_id: params.id,
+      timestamp: new Date().toISOString()
+    }, { status: 500 });
   }
 }
 
@@ -241,25 +225,3 @@ export async function OPTIONS() {
     }
   });
 }
-
-// 🔧 ALTERNATIVE: If PostgreSQL getAbstractById doesn't work, use this SQLite version
-/*
-// Fallback SQLite version
-import Database from 'better-sqlite3';
-
-function getAbstractByIdSQLite(id) {
-  try {
-    const db = new Database('./database.sqlite');
-    const stmt = db.prepare('SELECT * FROM abstracts WHERE id = ?');
-    const result = stmt.get(id);
-    db.close();
-    return result;
-  } catch (error) {
-    console.error('SQLite query error:', error);
-    throw error;
-  }
-}
-
-// Replace the getAbstractById call with:
-// const abstract = getAbstractByIdSQLite(params.id);
-*/
