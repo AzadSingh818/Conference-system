@@ -889,12 +889,12 @@ export const EnhancedAbstractTable = ({
             placeholder="Search abstracts..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-white text-black"
+            className="px-3 py-2 border border-black rounded-lg focus:ring-2 focus:ring-white text-black"
           />
           <select 
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-white text-black"
+            className="px-3 py-2 border border-black rounded-lg focus:ring-2 focus:ring-white text-black"
           >
             <option value="all">All Categories</option>
             {/* <option value="Free Paper">Free Paper</option>
@@ -905,7 +905,7 @@ export const EnhancedAbstractTable = ({
           <select 
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg"
+            className="px-3 py-2 border border-black rounded-lg focus:ring-2 focus:ring-white text-black"
           >
             <option value="all">All Status</option>
             <option value="pending">Pending</option>
@@ -916,7 +916,7 @@ export const EnhancedAbstractTable = ({
           <select 
             value={fileFilter}
             onChange={(e) => setFileFilter(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg"
+            className="px-3 py-2 border border-black rounded-lg focus:ring-2 focus:ring-white text-black"
           >
             <option value="all">All Files</option>
             <option value="with_file">With Files</option>
