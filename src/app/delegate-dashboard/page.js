@@ -365,7 +365,7 @@ export default function DelegateDashboard() {
 
       {/* Abstract Action Buttons */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold mb-4">Abstract Management Actions</h3>
+        <h3 className="text-lg font-semibold mb-4 text-green-700">Abstract Management Actions</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Submit Abstract Button */}
           <button
