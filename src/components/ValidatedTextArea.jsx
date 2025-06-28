@@ -8,7 +8,7 @@ import { validateWordCount } from '../lib/word-count-utils';
 const ValidatedTextArea = ({
   value = '',
   onChange,
-  presentationType = 'Free Paper',
+  presentationType = 'Poster', // Default to 'Poster'
   placeholder = 'Enter your abstract content here... (300 words maximum)',
   label = 'Abstract Content',
   required = true,
