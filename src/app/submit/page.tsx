@@ -247,12 +247,12 @@ export default function SubmitAbstract() {
                   {/* 🚀 UPDATED: Changed from 250 to 300 words */}
                   <p><strong>Word Limit: 300 words (All Categories)</strong></p>
                   <ul className="ml-4 mt-1 space-y-1 text-xs">
-                    <li>• Free Paper: 300 words</li>
+                    {/* <li>• Free Paper: 300 words</li> */}
                     <li>• Poster: 300 words</li>
-                    <li>• E-Poster: 300 words</li>
-                    <li>• Award Paper: 300 words</li>
+                    {/* <li>• E-Poster: 300 words</li> */}
+                    {/* <li>• Award Paper: 300 words</li> */}
                     <li>• Oral Paper: 300 words</li>
-                    <li>• Oral Presentation: 300 words</li>
+                    {/* <li>• Oral Presentation: 300 words</li> */}
                   </ul>
                 </div>
               </div>
@@ -260,7 +260,7 @@ export default function SubmitAbstract() {
               <div className="bg-blue-50 p-3 rounded">
                 <p className="font-medium text-blue-800">Time Allocation:</p>
                 <p className="text-blue-700 text-xs">
-                  Oral: 6+2 min | E-Poster: 5+2 min
+                  Oral: 6+2 min | Poster: 5+2 min
                 </p>
               </div>
             </div>
@@ -384,10 +384,10 @@ export default function SubmitAbstract() {
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   disabled={loading}
                 >
-                  <option value="Free Paper">Free Paper</option>
+                  {/* <option value="Free Paper">Free Paper</option> */}
                   <option value="Poster">Poster Presentation</option>
-                  <option value="E-Poster">E-Poster</option>
-                  <option value="Award Paper">Award Paper</option>
+                  {/* <option value="E-Poster">E-Poster</option>
+                  <option value="Award Paper">Award Paper</option> */}
                   <option value="Oral">Oral Presentation</option>
                 </select>
               </div>
