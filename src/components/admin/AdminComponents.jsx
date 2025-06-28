@@ -1170,10 +1170,10 @@ export const AbstractReviewModal = ({ abstract, isOpen, onClose, onUpdateStatus 
                   onChange={(e) => setPresentationType(e.target.value)}
                   className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 >
-                  <option value="Free Paper">Free Paper Presentation</option>
-                  <option value="Award Paper">Award Paper Presentation</option>
+                  {/* <option value="Free Paper">Free Paper Presentation</option> */}
+                  {/* <option value="Award Paper">Award Paper Presentation</option> */}
                   <option value="Poster">Poster Presentation</option>
-                  <option value="E-Poster">E-Poster Presentation</option>
+                  <option value="E-Poster">Oral Presentation</option>
                 </select>
               </div>
 
