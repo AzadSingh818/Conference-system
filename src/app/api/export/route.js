@@ -37,10 +37,10 @@ export async function GET(request) {
       pending: abstracts.filter(a => a.status === 'pending').length,
       approved: abstracts.filter(a => a.status === 'approved').length,
       rejected: abstracts.filter(a => a.status === 'rejected').length,
-      'Free Paper': abstracts.filter(a => a.presentation_type === 'Free Paper').length,
+      // 'Free Paper': abstracts.filter(a => a.presentation_type === 'Free Paper').length,
       'Poster': abstracts.filter(a => a.presentation_type === 'Poster').length,
-      'E-Poster': abstracts.filter(a => a.presentation_type === 'E-Poster').length,
-      'Award Paper': abstracts.filter(a => a.presentation_type === 'Award Paper').length
+      // 'E-Poster': abstracts.filter(a => a.presentation_type === 'E-Poster').length,
+      'Oral Presentation': abstracts.filter(a => a.presentation_type === 'Oral Presentation').length
     };
 
     if (format === 'json') {
@@ -86,10 +86,10 @@ export async function GET(request) {
       { Metric: 'Approved', Value: stats.approved },
       { Metric: 'Rejected', Value: stats.rejected },
       { Metric: '', Value: '' },
-      { Metric: 'Free Paper Presentations', Value: stats['Free Paper'] },
+      // { Metric: 'Free Paper Presentations', Value: stats['Free Paper'] },
       { Metric: 'Poster Presentations', Value: stats['Poster'] },
-      { Metric: 'E-Poster Presentations', Value: stats['E-Poster'] },
-      { Metric: 'Award Paper Presentations', Value: stats['Award Paper'] },
+      { Metric: 'Oral Presentations', Value: stats['Oral Presentations'] },
+      // { Metric: 'Award Paper Presentations', Value: stats['Award Paper'] },
       { Metric: '', Value: '' },
       { Metric: 'Export Date', Value: new Date().toLocaleString('en-IN') },
       { Metric: 'Database', Value: 'PostgreSQL' },
@@ -99,13 +99,13 @@ export async function GET(request) {
 
     // Category summary
     const categoryStats = [
-      { 
-        Category: 'Free Paper Presentation',
-        Total: stats['Free Paper'],
-        Pending: abstracts.filter(a => a.presentation_type === 'Free Paper' && a.status === 'pending').length,
-        Approved: abstracts.filter(a => a.presentation_type === 'Free Paper' && a.status === 'approved').length,
-        Rejected: abstracts.filter(a => a.presentation_type === 'Free Paper' && a.status === 'rejected').length
-      },
+      // { 
+      //   Category: 'Free Paper Presentation',
+      //   Total: stats['Free Paper'],
+      //   Pending: abstracts.filter(a => a.presentation_type === 'Free Paper' && a.status === 'pending').length,
+      //   Approved: abstracts.filter(a => a.presentation_type === 'Free Paper' && a.status === 'approved').length,
+      //   Rejected: abstracts.filter(a => a.presentation_type === 'Free Paper' && a.status === 'rejected').length
+      // },
       { 
         Category: 'Poster Presentation',
         Total: stats['Poster'],
@@ -113,16 +113,16 @@ export async function GET(request) {
         Approved: abstracts.filter(a => a.presentation_type === 'Poster' && a.status === 'approved').length,
         Rejected: abstracts.filter(a => a.presentation_type === 'Poster' && a.status === 'rejected').length
       },
+      // { 
+      //   Category: 'E-Poster Presentation',
+      //   Total: stats['E-Poster'],
+      //   Pending: abstracts.filter(a => a.presentation_type === 'E-Poster' && a.status === 'pending').length,
+      //   Approved: abstracts.filter(a => a.presentation_type === 'E-Poster' && a.status === 'approved').length,
+      //   Rejected: abstracts.filter(a => a.presentation_type === 'E-Poster' && a.status === 'rejected').length
+      // },
       { 
-        Category: 'E-Poster Presentation',
-        Total: stats['E-Poster'],
-        Pending: abstracts.filter(a => a.presentation_type === 'E-Poster' && a.status === 'pending').length,
-        Approved: abstracts.filter(a => a.presentation_type === 'E-Poster' && a.status === 'approved').length,
-        Rejected: abstracts.filter(a => a.presentation_type === 'E-Poster' && a.status === 'rejected').length
-      },
-      { 
-        Category: 'Award Paper Presentation',
-        Total: stats['Award Paper'],
+        Category: 'Oral Presentation',
+        Total: stats['Oral Presentation'] || 0,
         Pending: abstracts.filter(a => a.presentation_type === 'Award Paper' && a.status === 'pending').length,
         Approved: abstracts.filter(a => a.presentation_type === 'Award Paper' && a.status === 'approved').length,
         Rejected: abstracts.filter(a => a.presentation_type === 'Award Paper' && a.status === 'rejected').length

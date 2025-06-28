@@ -34,7 +34,7 @@ export default function SubmitAbstract() {
     title: '',
     presenter_name: '',
     institution_name: '',
-    presentation_type: 'Free Paper',
+    presentation_type: 'Poster', // Default to Poster
     category: 'Hematology', // 🚀 NEW: Separate category field
     abstract_content: '',
     co_authors: '',
@@ -150,7 +150,7 @@ export default function SubmitAbstract() {
           title: '',
           presenter_name: user?.name || '',
           institution_name: user?.institution || '',
-          presentation_type: 'Free Paper',
+          presentation_type: 'Poster', // Default to Poster
           category: 'Hematology', // 🚀 NEW: Reset to default category
           abstract_content: '',
           co_authors: '',

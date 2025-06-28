@@ -357,11 +357,11 @@ export async function GET(request) {
         status: abstract.status || 'pending',
         category: abstract.category || 'Hematology',
         categoryType: abstract.categoryType || abstract.category || 'Hematology',
-        presentation_type: abstract.presentation_type || 'Free Paper',
+        presentation_type: abstract.presentation_type || 'Poster',
         
         // Ensure safe string operations
         statusLower: (abstract.status || 'pending').toLowerCase(),
-        presentationTypeLower: (abstract.presentation_type || 'free paper').toLowerCase(),
+        presentationTypeLower: (abstract.presentation_type || 'Poster').toLowerCase(),
         categoryLower: (abstract.category || 'hematology').toLowerCase(),
         
         // Ensure dates are valid

@@ -616,7 +616,7 @@ export const CategoryWiseStatisticsTable = ({ stats, categoryStats }) => {
             </tr>
           </thead>
           <tbody>
-            <tr>
+            {/* <tr>
               <td className="border border-gray-300 px-4 py-3 font-medium">Free Paper Presentation</td>
               <td className="border border-gray-300 px-4 py-3 text-center bg-blue-50 font-semibold text-blue-800">
                 {categoryStats?.freePaper?.total || 0}
@@ -630,8 +630,8 @@ export const CategoryWiseStatisticsTable = ({ stats, categoryStats }) => {
               <td className="border border-gray-300 px-4 py-3 text-center bg-red-50 text-red-800">
                 {categoryStats?.freePaper?.rejected || 0}
               </td>
-            </tr>
-            <tr>
+            </tr> */}
+            {/* <tr>
               <td className="border border-gray-300 px-4 py-3 font-medium">Award Paper Presentation</td>
               <td className="border border-gray-300 px-4 py-3 text-center bg-blue-50 font-semibold text-blue-800">
                 {categoryStats?.awardPaper?.total || 0}
@@ -645,7 +645,7 @@ export const CategoryWiseStatisticsTable = ({ stats, categoryStats }) => {
               <td className="border border-gray-300 px-4 py-3 text-center bg-red-50 text-red-800">
                 {categoryStats?.awardPaper?.rejected || 0}
               </td>
-            </tr>
+            </tr> */}
             <tr>
               <td className="border border-gray-300 px-4 py-3 font-medium">Poster Presentation</td>
               <td className="border border-gray-300 px-4 py-3 text-center bg-blue-50 font-semibold text-blue-800">
@@ -662,7 +662,7 @@ export const CategoryWiseStatisticsTable = ({ stats, categoryStats }) => {
               </td>
             </tr>
             <tr>
-              <td className="border border-gray-300 px-4 py-3 font-medium">E-Poster Presentation</td>
+              <td className="border border-gray-300 px-4 py-3 font-medium">Oral Presentation</td>
               <td className="border border-gray-300 px-4 py-3 text-center bg-blue-50 font-semibold text-blue-800">
                 {categoryStats?.ePoster?.total || 0}
               </td>
@@ -897,10 +897,10 @@ export const EnhancedAbstractTable = ({
             className="px-3 py-2 border border-gray-300 rounded-lg"
           >
             <option value="all">All Categories</option>
-            <option value="Free Paper">Free Paper</option>
-            <option value="Award Paper">Award Paper</option>
+            {/* <option value="Free Paper">Free Paper</option>
+            <option value="Award Paper">Award Paper</option> */}
             <option value="Poster">Poster</option>
-            <option value="E-Poster">E-Poster</option>
+            <option value="E-Poster">Oral Presentaion</option>
           </select>
           <select 
             value={statusFilter}
@@ -1075,7 +1075,7 @@ export const EnhancedAbstractTable = ({
 // 3. ABSTRACT REVIEW MODAL COMPONENT (Keep existing)
 export const AbstractReviewModal = ({ abstract, isOpen, onClose, onUpdateStatus }) => {
   const [selectedStatus, setSelectedStatus] = useState(abstract?.status || 'pending');
-  const [presentationType, setPresentationType] = useState(abstract?.category || 'Free Paper');
+  const [presentationType, setPresentationType] = useState(abstract?.category || 'Poster');
   const [sendEmailNotification, setSendEmailNotification] = useState(true);
   const [reviewerComments, setReviewerComments] = useState('');
 

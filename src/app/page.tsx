@@ -39,13 +39,13 @@ export default function APBMTHomepage() {
   ];
 
   const abstractCategories = [
-    { 
-      title: 'Free Paper Presentation', 
-      duration: '6+2 minutes', 
-      wordLimit: '250 words',
-      icon: Microscope,
-      description: 'Original research presentations with discussion'
-    },
+    // { 
+    //   title: 'Free Paper Presentation', 
+    //   duration: '6+2 minutes', 
+    //   wordLimit: '250 words',
+    //   icon: Microscope,
+    //   description: 'Original research presentations with discussion'
+    // },
     { 
       title: 'Poster Presentation', 
       duration: 'Display', 

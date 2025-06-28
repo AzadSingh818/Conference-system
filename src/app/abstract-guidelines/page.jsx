@@ -282,10 +282,10 @@ export default function AbstractGuidelines() {
                   <CheckCircle className="h-4 w-4 text-blue-500 mr-2 mt-1" />
                   <p className="text-sm text-gray-700">Committee may change presentation type after review</p>
                 </div>
-                <div className="flex items-start">
+                {/* <div className="flex items-start">
                   <CheckCircle className="h-4 w-4 text-blue-500 mr-2 mt-1" />
                   <p className="text-sm text-gray-700">Abstract may be considered for free paper or e-poster</p>
-                </div>
+                </div> */}
                 <div className="flex items-start">
                   <CheckCircle className="h-4 w-4 text-red-500 mr-2 mt-1" />
                   <p className="text-sm text-gray-700"><strong>Spot registrations NOT allowed for presenters</strong></p>
