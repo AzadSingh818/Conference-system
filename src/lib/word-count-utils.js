@@ -2,16 +2,16 @@
 
 // 🚀 UPDATED: All presentation types now have 300 word limit (as requested)
 export const WORD_LIMITS = {
-    'Free Paper': 300,                // UPDATED from 250
+    //'Free Paper': 300,                // UPDATED from 250
     'Poster': 300,                    // UPDATED from 200  
-    'E-Poster': 300,                  // UPDATED from 200
-    'Award Paper': 300,               // UPDATED from 250
+    // 'E-Poster': 300,                  // UPDATED from 200
+    //'Award Paper': 300,               // UPDATED from 250
     'Oral': 300,                      // UPDATED from 250
-    'Poster Presentation': 300,       // UPDATED from 200
-    'E-Poster Presentation': 300,     // UPDATED from 200
-    'Oral Presentation': 300,         // NEW: Added
-    'Case Report': 300,               // NEW: Added
-    'Free Paper Presentation': 300    // NEW: Added
+    //'Poster Presentation': 300,       // UPDATED from 200
+    //'E-Poster Presentation': 300,     // UPDATED from 200
+    //'Oral Presentation': 300,         // NEW: Added
+    // 'Case Report': 300,               // NEW: Added
+    // 'Free Paper Presentation': 300    // NEW: Added
   };
   
   /**
