@@ -148,7 +148,7 @@ export default function DelegateLoginPage() {
                   type="email"
                   required
                   disabled={isLoading}
-                  className="pl-10 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
+                  className="pl-10 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white"
                   placeholder="Enter your email"
                   value={formData.email}
                   onChange={handleInputChange}
@@ -169,7 +169,7 @@ export default function DelegateLoginPage() {
                   type={showPassword ? "text" : "password"}
                   required
                   disabled={isLoading}
-                  className="pl-10 pr-10 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
+                  className="pl-10 pr-10 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white"
                   placeholder="Enter your password"
                   value={formData.password}
                   onChange={handleInputChange}
