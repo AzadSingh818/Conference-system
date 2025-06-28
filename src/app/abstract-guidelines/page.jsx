@@ -71,7 +71,7 @@ export default function AbstractGuidelines() {
           
           <div className="bg-gradient-to-r from-red-50 to-orange-50 border-l-4 border-red-400 p-4 mb-8">
             <p className="text-red-800 font-semibold text-lg">
-              FOR FREE ORAL PAPER AND E-POSTER PRESENTATIONS
+              FOR FREE ORAL PAPER AND POSTER PRESENTATIONS
             </p>
             <p className="text-red-600 text-sm mt-1">
               This should be visible on the abstract submission page
@@ -138,10 +138,10 @@ export default function AbstractGuidelines() {
                     <span className="text-sm font-medium">Poster Presentation:</span>
                     <span className="font-bold text-blue-700">300 words</span>
                   </div>
-                  <div className="flex justify-between items-center p-2 bg-white rounded">
-                    <span className="text-sm font-medium">E-Poster:</span>
+                  {/* <div className="flex justify-between items-center p-2 bg-white rounded">
+                    <span className="text-sm font-medium">Poster:</span>
                     <span className="font-bold text-blue-700">300 words</span>
-                  </div>
+                  </div> */}
                 </div>
               </div>
 
@@ -156,7 +156,7 @@ export default function AbstractGuidelines() {
                     <span className="font-bold text-green-700">6 min + 2 min discussion</span>
                   </div>
                   <div className="flex justify-between items-center p-2 bg-white rounded">
-                    <span className="text-sm font-medium">E-Poster:</span>
+                    <span className="text-sm font-medium">Poster:</span>
                     <span className="font-bold text-green-700">5 min + 2 min discussion</span>
                   </div>
                 </div>
