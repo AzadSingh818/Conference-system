@@ -647,7 +647,7 @@ export const CategoryWiseStatisticsTable = ({ stats, categoryStats }) => {
               </td>
             </tr> */}
             <tr>
-              <td className="border border-gray-300 px-4 py-3 font-medium">Poster Presentation</td>
+              <td className="border border-gray-300 px-4 py-3 font-medium text-black bg-white">Poster Presentation</td>
               <td className="border border-gray-300 px-4 py-3 text-center bg-blue-50 font-semibold text-blue-800">
                 {categoryStats?.poster?.total || 0}
               </td>
@@ -662,7 +662,7 @@ export const CategoryWiseStatisticsTable = ({ stats, categoryStats }) => {
               </td>
             </tr>
             <tr>
-              <td className="border border-gray-300 px-4 py-3 font-medium">Oral Presentation</td>
+              <td className="border border-gray-300 px-4 py-3 font-medium text-black bg-white">Oral Presentation</td>
               <td className="border border-gray-300 px-4 py-3 text-center bg-blue-50 font-semibold text-blue-800">
                 {categoryStats?.ePoster?.total || 0}
               </td>
