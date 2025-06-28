@@ -894,7 +894,7 @@ export const EnhancedAbstractTable = ({
           <select 
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg"
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-white text-black"
           >
             <option value="all">All Categories</option>
             {/* <option value="Free Paper">Free Paper</option>
