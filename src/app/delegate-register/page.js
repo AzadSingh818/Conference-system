@@ -149,7 +149,7 @@ export default function DelegateRegisterPage() {
                   type="text"
                   required
                   disabled={isLoading}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black bg-white"
                   placeholder="Dr. John"
                   value={formData.firstName}
                   onChange={handleInputChange}
@@ -166,7 +166,7 @@ export default function DelegateRegisterPage() {
                   type="text"
                   required
                   disabled={isLoading}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black bg-white"
                   placeholder="Smith"
                   value={formData.lastName}
                   onChange={handleInputChange}
@@ -189,7 +189,7 @@ export default function DelegateRegisterPage() {
                   type="email"
                   required
                   disabled={isLoading}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black bg-white"
                   placeholder="john.smith@hospital.com"
                   value={formData.email}
                   onChange={handleInputChange}
@@ -207,7 +207,7 @@ export default function DelegateRegisterPage() {
                     type="tel"
                     required
                     disabled={isLoading}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black bg-white"
                     placeholder="+1-555-123-4567"
                     value={formData.phone}
                     onChange={handleInputChange}
@@ -223,7 +223,7 @@ export default function DelegateRegisterPage() {
                     name="country"
                     required
                     disabled={isLoading}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black bg-white"
                     value={formData.country}
                     onChange={handleInputChange}
                   >
@@ -258,7 +258,7 @@ export default function DelegateRegisterPage() {
                   type="text"
                   required
                   disabled={isLoading}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black bg-white"
                   placeholder="Mayo Clinic, Johns Hopkins Hospital, etc."
                   value={formData.institution}
                   onChange={handleInputChange}
@@ -274,7 +274,7 @@ export default function DelegateRegisterPage() {
                   name="specialty"
                   required
                   disabled={isLoading}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black bg-white"
                   value={formData.specialty}
                   onChange={handleInputChange}
                 >
@@ -308,7 +308,7 @@ export default function DelegateRegisterPage() {
                     required
                     disabled={isLoading}
                     minLength="6"
-                    className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50"
+                    className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black bg-white"
                     placeholder="Minimum 6 characters"
                     value={formData.password}
                     onChange={handleInputChange}
@@ -339,7 +339,7 @@ export default function DelegateRegisterPage() {
                     type={showConfirmPassword ? "text" : "password"}
                     required
                     disabled={isLoading}
-                    className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50"
+                    className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black bg-white"
                     placeholder="Re-enter password"
                     value={formData.confirmPassword}
                     onChange={handleInputChange}
