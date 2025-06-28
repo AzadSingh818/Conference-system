@@ -12,7 +12,7 @@ import { AlertCircle, CheckCircle, AlertTriangle } from 'lucide-react';
 
 const WordCounter = ({ 
   text = '', 
-  presentationType = 'Free Paper',
+  presentationType = 'Poster', // Default to 'Poster'
   className = '',
   showProgress = true,
   showMessage = true 
