@@ -303,7 +303,7 @@ export default function SubmitAbstract() {
                   required
                   value={formData.title}
                   onChange={(e) => setFormData({...formData, title: e.target.value})}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white"
                   placeholder="Enter your research title"
                   disabled={loading}
                 />
@@ -319,7 +319,7 @@ export default function SubmitAbstract() {
                   required
                   value={formData.presenter_name}
                   onChange={(e) => setFormData({...formData, presenter_name: e.target.value})}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white"
                   placeholder="Primary presenter name"
                   disabled={loading}
                 />
@@ -335,7 +335,7 @@ export default function SubmitAbstract() {
                   required
                   value={formData.registration_payment_id}
                   onChange={(e) => setFormData({...formData, registration_payment_id: e.target.value})}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white "
                   placeholder="Enter payment reference ID"
                   disabled={loading}
                 />
@@ -350,7 +350,7 @@ export default function SubmitAbstract() {
                   type="text"
                   value={formData.registration_number}
                   onChange={(e) => setFormData({...formData, registration_number: e.target.value})}
-                  className="w-full p-3 border border-gray-300 rounded-lg bg-gray-50"
+                  className="w-full p-3 border border-gray-300 rounded-lg text-black bg-white"
                   placeholder="Auto-filled from profile"
                   readOnly
                 />
@@ -366,7 +366,7 @@ export default function SubmitAbstract() {
                   required
                   value={formData.institution_name}
                   onChange={(e) => setFormData({...formData, institution_name: e.target.value})}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white"
                   placeholder="Your institution name"
                   disabled={loading}
                 />
@@ -381,7 +381,7 @@ export default function SubmitAbstract() {
                   required
                   value={formData.presentation_type}
                   onChange={(e) => setFormData({...formData, presentation_type: e.target.value})}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white"
                   disabled={loading}
                 >
                   {/* <option value="Free Paper">Free Paper</option> */}
@@ -401,7 +401,7 @@ export default function SubmitAbstract() {
                   required
                   value={formData.category}
                   onChange={(e) => setFormData({...formData, category: e.target.value})}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white"
                   disabled={loading}
                 >
                   <option value="Hematology">Hematology</option>
@@ -424,7 +424,7 @@ export default function SubmitAbstract() {
                   type="text"
                   value={formData.co_authors}
                   onChange={(e) => setFormData({...formData, co_authors: e.target.value})}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white"
                   placeholder="Comma-separated co-author names"
                   disabled={loading}
                 />
