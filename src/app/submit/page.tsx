@@ -246,7 +246,7 @@ export default function SubmitAbstract() {
                 <div>
                   {/* 🚀 UPDATED: Changed from 250 to 300 words */}
                   <p><strong className="text-black bg-white">Word Limit: 300 words (All Categories)</strong></p>
-                  <ul className="ml-4 mt-1 space-y-1 text-xs text-black bg-white">
+                  <ul className="ml-4 mt-1 space-y-1 text-xs text-red bg-white">
                     {/* <li>• Free Paper: 300 words</li> */}
                     <li>• Poster: 300 words</li>
                     {/* <li>• E-Poster: 300 words</li> */}
