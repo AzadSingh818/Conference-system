@@ -226,10 +226,10 @@ export default function SubmitAbstract() {
             <div className="space-y-3">
               <div className="flex items-start">
                 <CheckCircle className="h-4 w-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
-                <span>Prior registration required for presentation</span>
+                <span className='text-green-600'>Prior registration required for presentation</span>
               </div>
               
-              <div className="flex items-start">
+              <div className="flex items-start text-red-600">
                 <Clock className="h-4 w-4 text-blue-500 mr-2 mt-0.5 flex-shrink-0" />
                 <span><strong>Deadline:</strong> July 10th, 2025 (extended)</span>
               </div>
