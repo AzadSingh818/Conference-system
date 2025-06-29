@@ -651,7 +651,7 @@ ${error.stack ? `Stack: ${error.stack.substring(0, 200)}...` : 'No additional de
           <div className="flex justify-between items-center py-4">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
-              <p className="text-gray-600">APBMT 2025 - Conference Management System</p>
+              <p className="text-gray-600">PHOCON 2025 - Conference Management System</p>
             </div>
             <div className="flex items-center space-x-4">
               <button
