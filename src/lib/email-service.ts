@@ -415,11 +415,60 @@ const sendBulkEmails = async (abstractIds, status, comments = '') => {
     };
   }
 };
+// 📧 REGISTRATION EMAIL TEMPLATE
+const generateRegistrationEmail = (user) => {
+  const html = `
+    <div style="font-family: Arial, sans-serif; background: #f9f9f9; padding: 20px;">
+      <div style="background: #007bff; color: white; padding: 20px; border-radius: 8px;">
+        <h2>👋 Welcome to Our Platform!</h2>
+      </div>
+      <div style="background: white; padding: 20px; border-radius: 8px; margin-top: 20px;">
+        <p>Hi <strong>${user.full_name}</strong>,</p>
+        <p>Thank you for registering.</p>
+        <p>Here are your login credentials:</p>
+        <ul>
+          <li><strong>Email:</strong> ${user.email}</li>
+          <li><strong>Password:</strong> ${user.password}</li>
+        </ul>
+        <p>Use these credentials to log in and start exploring!</p>
+      </div>
+      <p style="color: #999; font-size: 12px;">This is an automated message. Please do not reply directly to this email.</p>
+    </div>
+  `;
+
+  const text = `
+Welcome to Our Platform!
+
+Hi ${user.full_name},
+
+Thank you for registering.
+
+Here are your login credentials:
+Email: ${user.email}
+Password: ${user.password}
+
+Use these credentials to log in and start exploring.
+
+(This is an automated message. Please do not reply.)
+  `;
+
+  return {
+    to: user.email,
+    subject: `🎉 Welcome, ${user.full_name}! Your Login Details`,
+    html,
+    text
+  };
+};
+
+
+
 
 // Export functions
 module.exports = {
   sendEmail,
   generateStatusUpdateEmail,
   sendTestEmail,
-  sendBulkEmails
+  sendBulkEmails,
+  generateRegistrationEmail
 };
+

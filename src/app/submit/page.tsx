@@ -115,7 +115,7 @@ export default function SubmitAbstract() {
         registration_payment_id: formData.registration_payment_id,
         registration_number: formData.registration_number,
         submissionId,
-        attachedFiles: uploadedFiles,
+        uploadedFiles: uploadedFiles,
         submissionDate: new Date().toISOString(),
         status: 'pending',
         userId: user?.id,
