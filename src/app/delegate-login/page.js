@@ -254,7 +254,7 @@ export default function DelegateLoginPage() {
         {/* Conference Info */}
         <div className="text-center border-t pt-4">
           <p className="text-xs text-gray-500">
-            For technical support, contact: support@apbmt.org
+            For technical support, contact: abstracts@phocon2025.com
           </p>
         </div>
       </div>
