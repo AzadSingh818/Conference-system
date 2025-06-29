@@ -432,7 +432,7 @@ export default function SubmitAbstract() {
             </div>
 
             {/* Abstract Content with 300 Word Validation */}
-            <div className="space-y-4">
+            <div className="space-y-4 text-black bg-white">
               <ValidatedTextArea
                 value={formData.abstract_content}
                 onChange={(content) => setFormData({...formData, abstract_content: content})}
