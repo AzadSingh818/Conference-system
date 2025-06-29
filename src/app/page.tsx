@@ -192,7 +192,7 @@ export default function APBMTHomepage() {
       <section className="py-8 bg-white">
         <div className="max-w-7xl mx-auto px-4">
           <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-semibold mb-4 flex items-center">
+            <h2 className="text-xl font-semibold mb-4 flex items-center text-blue-600 bg-white">
               <Star className="h-5 w-5 mr-2 text-blue-600" />
               System Status
             </h2>
@@ -226,7 +226,7 @@ export default function APBMTHomepage() {
       <section className="py-8 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4">
           <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-2xl font-semibold mb-4 flex items-center">
+            <h2 className="text-2xl font-semibold mb-4 flex items-center text-green-600 bg-white">
               <Target className="h-5 w-5 mr-2 text-green-600" />
               Quick Actions
             </h2>
