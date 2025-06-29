@@ -32,10 +32,10 @@ export default function APBMTHomepage() {
   ];
 
   const importantDates = [
-    { event: 'Abstract Submission Deadline', date: 'July 10, 2025', status: 'extended', color: 'red' },
-    { event: 'Early Bird Registration', date: 'August 15, 2025', status: 'open', color: 'green' },
-    { event: 'Final Registration', date: 'February 15, 2025', status: 'upcoming', color: 'blue' },
-    { event: 'Conference Dates', date: 'March 15-17, 2025', status: 'confirmed', color: 'purple' }
+    { event: 'Abstract Submission Deadline', date: 'September 1,2025(midnight 1st)', status: 'extended', color: 'red' },
+    { event: 'Early Bird Registration', date: 'July 1,2025', status: 'open', color: 'green' },
+    { event: 'Abstact Notification', date: 'October 1,2025', status: 'upcoming', color: 'blue' },
+    { event: 'Conference Dates', date: '29th-30th Nov,2025', status: 'confirmed', color: 'purple' }
   ];
 
   const abstractCategories = [
@@ -49,23 +49,23 @@ export default function APBMTHomepage() {
     { 
       title: 'Poster Presentation', 
       duration: 'Display', 
-      wordLimit: '200 words',
+      wordLimit: '300 words',
       icon: FileText,
       description: 'Visual presentation of research findings'
     },
+    // { 
+    //   title: 'E-Poster Presentation', 
+    //   duration: '5+2 minutes', 
+    //   wordLimit: '200 words',
+    //   icon: Activity,
+    //   description: 'Electronic poster with presentation slot'
+    // },
     { 
-      title: 'E-Poster Presentation', 
-      duration: '5+2 minutes', 
-      wordLimit: '200 words',
-      icon: Activity,
-      description: 'Electronic poster with presentation slot'
-    },
-    { 
-      title: 'Award Paper', 
+      title: 'Oral Presentation', 
       duration: '8+2 minutes', 
-      wordLimit: '250 words',
-      icon: Award,
-      description: 'Competitive presentations for awards'
+      wordLimit: '300 words',
+      icon: Activity,
+      description: 'Competitive presentations for Oral session'
     }
   ];
 
@@ -86,8 +86,8 @@ export default function APBMTHomepage() {
                 <Heart className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-800">APBMT 2025</h1>
-                <p className="text-xs text-gray-500">Asia-Pacific BMT Conference</p>
+                <h1 className="text-xl font-bold text-gray-800">PHOCON-2025</h1>
+                <p className="text-xs text-gray-500">28th Annual Pediatric Hematology Oncology Conference</p>
               </div>
             </div>
             
@@ -148,20 +148,20 @@ export default function APBMTHomepage() {
             APBMT 2025 Annual Conference
           </h1>
           <p className="text-xl text-blue-100 mb-4 max-w-3xl mx-auto">
-            Asia-Pacific Blood and Marrow Transplantation Group Conference
+            PHOCON 28th Annual Pediatric Hematology Oncology Conference
           </p>
           <p className="text-lg text-blue-200 mb-8 max-w-2xl mx-auto">
-            Advancing Pediatric BMT Research & Clinical Excellence
+            Department of Pediatric Oncology Kasturba Medical College, Manipal University, Manipal
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
             <div className="flex items-center text-blue-100">
               <Calendar className="h-5 w-5 mr-2" />
-              <span>March 15-17, 2025</span>
+              <span>29th - 30th Nov, 2025</span>
             </div>
             <div className="flex items-center text-blue-100">
               <MapPin className="h-5 w-5 mr-2" />
-              <span>Mumbai, India</span>
+              <span>Dr TMA Pai Halls, KMC, Manipal</span>
             </div>
             <div className="flex items-center text-blue-100">
               <Users className="h-5 w-5 mr-2" />
@@ -263,7 +263,7 @@ export default function APBMTHomepage() {
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">Conference Overview</h2>
             <p className="text-lg text-gray-600">
-              Join the premier pediatric BMT conference in Asia-Pacific
+              Join the PHOCON 28th Annual Pediatric Hematology Oncology Conference
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
@@ -341,9 +341,9 @@ export default function APBMTHomepage() {
       {/* Call to Action */}
       <section className="py-16 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
         <div className="max-w-4xl mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold mb-4">Ready to Join APBMT 2025?</h2>
+          <h2 className="text-3xl font-bold mb-4">Ready to Join PHOCON 2025?</h2>
           <p className="text-xl text-blue-100 mb-8">
-            Submit your research abstract and be part of the premier pediatric BMT conference
+            Submit your research abstract and be part of the premier PHOCON 28th Annual Pediatric Hematology Oncology Conference
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -373,10 +373,10 @@ export default function APBMTHomepage() {
             <div>
               <div className="flex items-center space-x-2 mb-4">
                 <Heart className="h-6 w-6 text-blue-400" />
-                <span className="text-lg font-bold">APBMT 2025</span>
+                <span className="text-lg font-bold">PHOCON 2025</span>
               </div>
               <p className="text-gray-400 text-sm">
-                Advancing pediatric blood and marrow transplantation research across Asia-Pacific.
+                PHOCON 28th Annual Pediatric Hematology Oncology Conference
               </p>
             </div>
             
@@ -393,9 +393,9 @@ export default function APBMTHomepage() {
             <div>
               <h3 className="text-lg font-semibold mb-4">Important Dates</h3>
               <ul className="space-y-2 text-sm text-gray-400">
-                <li>Abstract Deadline: July 10, 2025</li>
-                <li>Early Registration: Aug 15, 2025</li>
-                <li>Conference: March 15-17, 2025</li>
+                <li>Abstract Deadline: September 1, 2025 (midnight 1st)</li>
+                <li>Early Registration: July 1, 2025</li>
+                <li>Conference: 29th-30th Nov, 2025</li>
               </ul>
             </div>
             
@@ -404,23 +404,23 @@ export default function APBMTHomepage() {
               <div className="space-y-2 text-sm text-gray-400">
                 <div className="flex items-center">
                   <Mail className="h-4 w-4 mr-2" />
-                  <span>info@apbmt2025.org</span>
+                  <span>abstracts@phocon2025.com</span>
                 </div>
                 <div className="flex items-center">
                   <Phone className="h-4 w-4 mr-2" />
-                  <span>+91-22-2845-1234</span>
+                  <span>+916364690353</span>
                 </div>
                 <div className="flex items-center">
                   <MapPin className="h-4 w-4 mr-2" />
-                  <span>Mumbai, India</span>
+                  <span>Dr TMA Pai Halls, KMC, Manipal</span>
                 </div>
               </div>
             </div>
           </div>
           
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-sm text-gray-400">
-            <p>&copy; 2025 Asia-Pacific Blood and Marrow Transplantation Group. All rights reserved.</p>
-            <p className="mt-2">🚀 Built with Next.js 15 + Turbopack + TypeScript + Tailwind CSS</p>
+            <p>&copy; PHOCON 28th Annual Pediatric Hematology Oncology Conference.All rights reserved.</p>
+            {/* <p className="mt-2">🚀 Built with Next.js 15 + Turbopack + TypeScript + Tailwind CSS</p> */}
           </div>
         </div>
       </footer>
