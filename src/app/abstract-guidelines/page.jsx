@@ -35,7 +35,7 @@ export default function AbstractGuidelines() {
                 Abstract Submission Guidelines
               </h1>
               <p className="text-lg text-gray-600">
-                APBMT 2025 - Asia-Pacific Blood and Marrow Transplantation Conference
+                PHOCON -2025,28th Annual Pediatric Hematology Oncology Conference
               </p>
             </div>
             
@@ -53,7 +53,7 @@ export default function AbstractGuidelines() {
             <div>
               <h3 className="font-semibold text-red-800">Important Notice</h3>
               <p className="text-red-700 text-sm">
-                Abstract submission deadline has been extended to <strong>July 10th, 2025</strong>. 
+                Abstract submission deadline has been extended to <strong>September 1,2025(midnight 1st)</strong>. 
                 All guidelines below must be followed for successful submission.
               </p>
             </div>
@@ -106,7 +106,7 @@ export default function AbstractGuidelines() {
                   <Clock className="h-5 w-5 text-red-600 mr-3 mt-1 flex-shrink-0" />
                   <div>
                     <p className="font-semibold text-red-800">Submission Deadline</p>
-                    <p className="text-red-700 font-medium">Extended to 10th July 2025</p>
+                    <p className="text-red-700 font-medium">Extended to September 1,2025(midnight 1st)</p>
                   </div>
                 </div>
 
@@ -131,11 +131,11 @@ export default function AbstractGuidelines() {
                 </h4>
                 <div className="space-y-3">
                   <div className="flex justify-between items-center p-2 bg-white rounded">
-                    <span className="text-sm font-medium">Oral Paper:</span>
+                    <span className="text-sm font-medium text-black">Oral Paper:</span>
                     <span className="font-bold text-blue-700">300 words</span>
                   </div>
                   <div className="flex justify-between items-center p-2 bg-white rounded">
-                    <span className="text-sm font-medium">Poster Presentation:</span>
+                    <span className="text-sm font-medium text-black">Poster Presentation:</span>
                     <span className="font-bold text-blue-700">300 words</span>
                   </div>
                   {/* <div className="flex justify-between items-center p-2 bg-white rounded">
@@ -152,11 +152,11 @@ export default function AbstractGuidelines() {
                 </h4>
                 <div className="space-y-3">
                   <div className="flex justify-between items-center p-2 bg-white rounded">
-                    <span className="text-sm font-medium">Oral Paper:</span>
+                    <span className="text-sm font-medium text-green-600">Oral Paper:</span>
                     <span className="font-bold text-green-700">6 min + 2 min discussion</span>
                   </div>
                   <div className="flex justify-between items-center p-2 bg-white rounded">
-                    <span className="text-sm font-medium">Poster:</span>
+                    <span className="text-sm font-medium text-green-600">Poster:</span>
                     <span className="font-bold text-green-700">5 min + 2 min discussion</span>
                   </div>
                 </div>
@@ -266,7 +266,7 @@ export default function AbstractGuidelines() {
               <div className="space-y-3">
                 <div className="flex items-start">
                   <CheckCircle className="h-4 w-4 text-green-500 mr-2 mt-1" />
-                  <p className="text-sm text-gray-700">APBMT Scientific Committee will review all abstracts</p>
+                  <p className="text-sm text-gray-700">PHOCON Scientific Committee will review all abstracts</p>
                 </div>
                 <div className="flex items-start">
                   <CheckCircle className="h-4 w-4 text-green-500 mr-2 mt-1" />
@@ -306,7 +306,7 @@ export default function AbstractGuidelines() {
               <ul className="text-sm text-red-700 space-y-2">
                 <li>• Follow word limits strictly for successful submission</li>
                 <li>• Use only approved file formats for uploads</li>
-                <li>• Submit before deadline - no extensions after July 10, 2025</li>
+                <li>• Submit before deadline - no extensions after September 1,2025(midnight 1st)</li>
               </ul>
             </div>
           </div>
@@ -372,8 +372,8 @@ export default function AbstractGuidelines() {
             <strong>Note:</strong> Guidelines are dynamic and may change from conference to conference
           </p>
           <p className="text-xs mt-2">
-            © APBMT 2025 - Asia-Pacific Blood and Marrow Transplantation Conference | 
-            For queries: <a href="mailto:abstracts@apbmt2025.org" className="text-blue-600 hover:underline">abstracts@apbmt2025.org</a>
+            © PHOCON 28th Annual Pediatric Hematology Oncology Conference | 
+            For queries: <a href="mailto:abstracts@phocon2025.com" className="text-blue-600 hover:underline">abstracts@phocon2025.com</a>
           </p>
         </div>
       </div>
