@@ -629,7 +629,7 @@ export default function DelegateDashboard() {
         {/* Enhanced Welcome Section */}
         <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg shadow text-white p-6">
           <h2 className="text-2xl font-bold mb-2">Welcome back, {user?.name}!</h2>
-          <p className="text-blue-100 mb-4">APBMT 2025 Conference Management System</p>
+          <p className="text-blue-100 mb-4">PHOCON-2025 Conference Management System</p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
             <div className="flex items-center">
               <User className="h-4 w-4 mr-2" />
@@ -641,7 +641,7 @@ export default function DelegateDashboard() {
             </div>
             <div className="flex items-center">
               <Calendar className="h-4 w-4 mr-2" />
-              Conference: March 15-17, 2025
+              Conference: 29th - 30th Nov, 2025
             </div>
           </div>
         </div>
@@ -1208,7 +1208,7 @@ export default function DelegateDashboard() {
                 <User className="h-4 w-4 text-white" />
               </div>
               <div className="ml-3">
-                <h1 className="text-xl font-semibold text-gray-900">APBMT 2025</h1>
+                <h1 className="text-xl font-semibold text-gray-900">PHOCON 2025</h1>
                 <p className="text-xs text-gray-500">Production Environment • Edit Enabled</p>
               </div>
             </div>

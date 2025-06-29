@@ -111,7 +111,7 @@ export default function DelegateLoginPage() {
             Delegate Portal
           </h2>
           <p className="mt-2 text-sm text-gray-600">
-            APBMT 2025 - Annual Meeting on Pediatric Blood and Marrow Transplantation
+            PHOCON-2025,28th Annual Pediatric Hematology Oncology Conference
           </p>
           <p className="mt-1 text-xs text-gray-500">
             Sign in to submit abstracts and access conference resources
