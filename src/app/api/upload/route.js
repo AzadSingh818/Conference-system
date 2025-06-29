@@ -115,6 +115,7 @@ export async function POST(request) {
         
         // Validate file size
         if (file.size > MAX_FILE_SIZE) {
+          
           uploadErrors.push({
             fileName: file.name,
             error: `File too large. Maximum size: ${MAX_FILE_SIZE / 1024 / 1024}MB`
