@@ -26,9 +26,9 @@ export default function APBMTHomepage() {
 
   const conferenceStats = [
     { icon: Users, label: 'Expected Attendees', value: '500+', color: 'blue' },
-    { icon: FileText, label: 'Abstract Categories', value: '5', color: 'green' },
+    { icon: FileText, label: 'Abstract Categories', value: '2', color: 'green' },
     { icon: Award, label: 'Keynote Speakers', value: '15', color: 'purple' },
-    { icon: Calendar, label: 'Conference Days', value: '3', color: 'orange' }
+    { icon: Calendar, label: 'Conference Days', value: '2', color: 'orange' }
   ];
 
   const importantDates = [
@@ -141,11 +141,11 @@ export default function APBMTHomepage() {
         <div className="max-w-7xl mx-auto px-4 text-center">
           <div className="inline-flex items-center bg-white/10 rounded-full px-4 py-2 mb-6">
             <Bell className="h-4 w-4 mr-2" />
-            <span className="text-sm font-medium">Abstract Submission Extended to July 10, 2025</span>
+            <span className="text-sm font-medium">Abstract Submission Extended to September 1,2025(midnight 1st)</span>
           </div>
           
           <h1 className="text-5xl font-bold mb-6">
-            APBMT 2025 Annual Conference
+            PHOCON 2025 Annual Conference
           </h1>
           <p className="text-xl text-blue-100 mb-4 max-w-3xl mx-auto">
             PHOCON 28th Annual Pediatric Hematology Oncology Conference
