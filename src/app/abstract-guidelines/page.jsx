@@ -239,13 +239,13 @@ export default function AbstractGuidelines() {
               </div>
             </div> */}
             
-            <div className="mt-6 p-4 bg-purple-100 border border-purple-300 rounded-lg">
+            {/* <div className="mt-6 p-4 bg-purple-100 border border-purple-300 rounded-lg">
               <h4 className="font-semibold text-purple-800 mb-2">Prohibited Elements:</h4>
               <p className="text-sm text-purple-700">
                 <strong>Do NOT include:</strong> Hyperlinks, Animated Images, Animations, GIFs, 
                 Embedded Documents, Videos. Use e-poster template provided on website.
               </p>
-            </div>
+            </div> */}
 
             <div className="mt-4 p-4 bg-white border border-purple-200 rounded-lg">
               <h4 className="font-semibold text-purple-800 mb-2">File Naming:</h4>

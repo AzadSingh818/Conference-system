@@ -151,7 +151,7 @@ export default function APBMTHomepage() {
             PHOCON 28th Annual Pediatric Hematology Oncology Conference
           </p>
           <p className="text-lg text-blue-200 mb-8 max-w-2xl mx-auto">
-            Department of Pediatric Oncology Kasturba Medical College, Manipal University, Manipal
+            Department of Pediatric Oncology, Kasturba Medical College, Manipal University, Manipal
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
