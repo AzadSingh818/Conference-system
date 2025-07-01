@@ -1110,7 +1110,7 @@ export const AbstractReviewModal = ({ abstract, isOpen, onClose, onUpdateStatus 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Abstract Details */}
           <div>
-            <h3 className="text-lg font-semibold mb-3">Abstract Details</h3>
+            <h3 className="text-lg font-semibold mb-3 text-blue-600 bg-white">Abstract Details</h3>
             <div className="space-y-3">
               <div>
                 <label className="block text-sm font-medium text-gray-700">Title</label>
@@ -1148,7 +1148,7 @@ export const AbstractReviewModal = ({ abstract, isOpen, onClose, onUpdateStatus 
 
           {/* Review Form */}
           <div>
-            <h3 className="text-lg font-semibold mb-3">Review Form</h3>
+            <h3 className="text-lg font-semibold mb-3 text-blue-600 bg-white">Review Form</h3>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700">Status</label>
@@ -1157,9 +1157,9 @@ export const AbstractReviewModal = ({ abstract, isOpen, onClose, onUpdateStatus 
                   onChange={(e) => setSelectedStatus(e.target.value)}
                   className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 >
-                  <option value="pending">Pending</option>
-                  <option value="approved">Approved</option>
-                  <option value="rejected">Rejected</option>
+                  <option value="pending text-black bg-white">Pending</option>
+                  <option value="approved text-black bg-white">Approved</option>
+                  <option value="rejected text-black bg-white">Rejected</option>
                 </select>
               </div>
 
@@ -1172,8 +1172,8 @@ export const AbstractReviewModal = ({ abstract, isOpen, onClose, onUpdateStatus 
                 >
                   {/* <option value="Free Paper">Free Paper Presentation</option> */}
                   {/* <option value="Award Paper">Award Paper Presentation</option> */}
-                  <option value="Poster">Poster Presentation</option>
-                  <option value="E-Poster">Oral Presentation</option>
+                  <option value="Poster text-black bg-white">Poster Presentation</option>
+                  <option value="E-Poster text-black bg-white">Oral Presentation</option>
                 </select>
               </div>
 
@@ -1183,7 +1183,7 @@ export const AbstractReviewModal = ({ abstract, isOpen, onClose, onUpdateStatus 
                   value={reviewerComments}
                   onChange={(e) => setReviewerComments(e.target.value)}
                   rows={4}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-black bg-white"
                   placeholder="Enter your review comments..."
                 />
               </div>
