@@ -1,0 +1,331 @@
+[1mdiff --git a/src/app/abstract-guidelines/page.jsx b/src/app/abstract-guidelines/page.jsx[m
+[1mindex 23b1c5c..814fe68 100644[m
+[1m--- a/src/app/abstract-guidelines/page.jsx[m
+[1m+++ b/src/app/abstract-guidelines/page.jsx[m
+[36m@@ -35,7 +35,7 @@[m [mexport default function AbstractGuidelines() {[m
+                 Abstract Submission Guidelines[m
+               </h1>[m
+               <p className="text-lg text-gray-600">[m
+[31m-                PHOCON -2025,28th Annual Pediatric Hematology Oncology Conference[m
+[32m+[m[32m                APBMT 2025 - Asia-Pacific Blood and Marrow Transplantation Conference[m
+               </p>[m
+             </div>[m
+             [m
+[36m@@ -53,7 +53,7 @@[m [mexport default function AbstractGuidelines() {[m
+             <div>[m
+               <h3 className="font-semibold text-red-800">Important Notice</h3>[m
+               <p className="text-red-700 text-sm">[m
+[31m-                Abstract submission deadline has been extended to <strong>September 1,2025(midnight 1st)</strong>. [m
+[32m+[m[32m                Abstract submission deadline has been extended to <strong>July 10th, 2025</strong>.[m[41m [m
+                 All guidelines below must be followed for successful submission.[m
+               </p>[m
+             </div>[m
+[36m@@ -106,7 +106,7 @@[m [mexport default function AbstractGuidelines() {[m
+                   <Clock className="h-5 w-5 text-red-600 mr-3 mt-1 flex-shrink-0" />[m
+                   <div>[m
+                     <p className="font-semibold text-red-800">Submission Deadline</p>[m
+[31m-                    <p className="text-red-700 font-medium">Extended to September 1,2025(midnight 1st)</p>[m
+[32m+[m[32m                    <p className="text-red-700 font-medium">Extended to 10th July 2025</p>[m
+                   </div>[m
+                 </div>[m
+ [m
+[36m@@ -131,11 +131,11 @@[m [mexport default function AbstractGuidelines() {[m
+                 </h4>[m
+                 <div className="space-y-3">[m
+                   <div className="flex justify-between items-center p-2 bg-white rounded">[m
+[31m-                    <span className="text-sm font-medium text-black">Oral Paper:</span>[m
+[32m+[m[32m                    <span className="text-sm font-medium">Oral Paper:</span>[m
+                     <span className="font-bold text-blue-700">300 words</span>[m
+                   </div>[m
+                   <div className="flex justify-between items-center p-2 bg-white rounded">[m
+[31m-                    <span className="text-sm font-medium text-black">Poster Presentation:</span>[m
+[32m+[m[32m                    <span className="text-sm font-medium">Poster Presentation:</span>[m
+                     <span className="font-bold text-blue-700">300 words</span>[m
+                   </div>[m
+                   {/* <div className="flex justify-between items-center p-2 bg-white rounded">[m
+[36m@@ -152,11 +152,11 @@[m [mexport default function AbstractGuidelines() {[m
+                 </h4>[m
+                 <div className="space-y-3">[m
+                   <div className="flex justify-between items-center p-2 bg-white rounded">[m
+[31m-                    <span className="text-sm font-medium text-green-600">Oral Paper:</span>[m
+[32m+[m[32m                    <span className="text-sm font-medium">Oral Paper:</span>[m
+                     <span className="font-bold text-green-700">6 min + 2 min discussion</span>[m
+                   </div>[m
+                   <div className="flex justify-between items-center p-2 bg-white rounded">[m
+[31m-                    <span className="text-sm font-medium text-green-600">Poster:</span>[m
+[32m+[m[32m                    <span className="text-sm font-medium">Poster:</span>[m
+                     <span className="font-bold text-green-700">5 min + 2 min discussion</span>[m
+                   </div>[m
+                 </div>[m
+[36m@@ -266,7 +266,7 @@[m [mexport default function AbstractGuidelines() {[m
+               <div className="space-y-3">[m
+                 <div className="flex items-start">[m
+                   <CheckCircle className="h-4 w-4 text-green-500 mr-2 mt-1" />[m
+[31m-                  <p className="text-sm text-gray-700">PHOCON Scientific Committee will review all abstracts</p>[m
+[32m+[m[32m                  <p className="text-sm text-gray-700">APBMT Scientific Committee will review all abstracts</p>[m
+                 </div>[m
+                 <div className="flex items-start">[m
+                   <CheckCircle className="h-4 w-4 text-green-500 mr-2 mt-1" />[m
+[36m@@ -306,7 +306,7 @@[m [mexport default function AbstractGuidelines() {[m
+               <ul className="text-sm text-red-700 space-y-2">[m
+                 <li>• Follow word limits strictly for successful submission</li>[m
+                 <li>• Use only approved file formats for uploads</li>[m
+[31m-                <li>• Submit before deadline - no extensions after September 1,2025(midnight 1st)</li>[m
+[32m+[m[32m                <li>• Submit before deadline - no extensions after July 10, 2025</li>[m
+               </ul>[m
+             </div>[m
+           </div>[m
+[36m@@ -372,8 +372,8 @@[m [mexport default function AbstractGuidelines() {[m
+             <strong>Note:</strong> Guidelines are dynamic and may change from conference to conference[m
+           </p>[m
+           <p className="text-xs mt-2">[m
+[31m-            © PHOCON 28th Annual Pediatric Hematology Oncology Conference | [m
+[31m-            For queries: <a href="mailto:abstracts@phocon2025.com" className="text-blue-600 hover:underline">abstracts@phocon2025.com</a>[m
+[32m+[m[32m            © APBMT 2025 - Asia-Pacific Blood and Marrow Transplantation Conference |[m[41m [m
+[32m+[m[32m            For queries: <a href="mailto:abstracts@apbmt2025.org" className="text-blue-600 hover:underline">abstracts@apbmt2025.org</a>[m
+           </p>[m
+         </div>[m
+       </div>[m
+[1mdiff --git a/src/app/admin/page.tsx b/src/app/admin/page.tsx[m
+[1mindex 6f3cb3c..e83ed78 100644[m
+[1m--- a/src/app/admin/page.tsx[m
+[1m+++ b/src/app/admin/page.tsx[m
+[36m@@ -651,7 +651,7 @@[m [m${error.stack ? `Stack: ${error.stack.substring(0, 200)}...` : 'No additional de[m
+           <div className="flex justify-between items-center py-4">[m
+             <div>[m
+               <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>[m
+[31m-              <p className="text-gray-600">PHOCON 2025 - Conference Management System</p>[m
+[32m+[m[32m              <p className="text-gray-600">APBMT 2025 - Conference Management System</p>[m
+             </div>[m
+             <div className="flex items-center space-x-4">[m
+               <button[m
+[1mdiff --git a/src/app/delegate-dashboard/page.js b/src/app/delegate-dashboard/page.js[m
+[1mindex 9aed355..b2106e1 100644[m
+[1m--- a/src/app/delegate-dashboard/page.js[m
+[1m+++ b/src/app/delegate-dashboard/page.js[m
+[36m@@ -629,7 +629,7 @@[m [mexport default function DelegateDashboard() {[m
+         {/* Enhanced Welcome Section */}[m
+         <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg shadow text-white p-6">[m
+           <h2 className="text-2xl font-bold mb-2">Welcome back, {user?.name}!</h2>[m
+[31m-          <p className="text-blue-100 mb-4">PHOCON-2025 Conference Management System</p>[m
+[32m+[m[32m          <p className="text-blue-100 mb-4">APBMT 2025 Conference Management System</p>[m
+           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">[m
+             <div className="flex items-center">[m
+               <User className="h-4 w-4 mr-2" />[m
+[36m@@ -641,7 +641,7 @@[m [mexport default function DelegateDashboard() {[m
+             </div>[m
+             <div className="flex items-center">[m
+               <Calendar className="h-4 w-4 mr-2" />[m
+[31m-              Conference: 29th - 30th Nov, 2025[m
+[32m+[m[32m              Conference: March 15-17, 2025[m
+             </div>[m
+           </div>[m
+         </div>[m
+[36m@@ -702,7 +702,7 @@[m [mexport default function DelegateDashboard() {[m
+         {/* 🚀 NEW: Category Statistics */}[m
+         {stats.total > 0 && ([m
+           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">[m
+[31m-            <h3 className="text-lg font-semibold mb-4 text-blue-600 bg-white">Your Abstracts by Category</h3>[m
+[32m+[m[32m            <h3 className="text-lg font-semibold mb-4">Your Abstracts by Category</h3>[m
+             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">[m
+               <div className="text-center p-3 bg-red-50 rounded-lg">[m
+                 <div className="text-2xl font-bold text-red-600">{stats.byCategory.hematology}</div>[m
+[36m@@ -1208,7 +1208,7 @@[m [mexport default function DelegateDashboard() {[m
+                 <User className="h-4 w-4 text-white" />[m
+               </div>[m
+               <div className="ml-3">[m
+[31m-                <h1 className="text-xl font-semibold text-gray-900">PHOCON 2025</h1>[m
+[32m+[m[32m                <h1 className="text-xl font-semibold text-gray-900">APBMT 2025</h1>[m
+                 <p className="text-xs text-gray-500">Production Environment • Edit Enabled</p>[m
+               </div>[m
+             </div>[m
+[1mdiff --git a/src/app/delegate-login/page.js b/src/app/delegate-login/page.js[m
+[1mindex 3ce641f..5757a17 100644[m
+[1m--- a/src/app/delegate-login/page.js[m
+[1m+++ b/src/app/delegate-login/page.js[m
+[36m@@ -111,7 +111,7 @@[m [mexport default function DelegateLoginPage() {[m
+             Delegate Portal[m
+           </h2>[m
+           <p className="mt-2 text-sm text-gray-600">[m
+[31m-            PHOCON-2025,28th Annual Pediatric Hematology Oncology Conference[m
+[32m+[m[32m            APBMT 2025 - Annual Meeting on Pediatric Blood and Marrow Transplantation[m
+           </p>[m
+           <p className="mt-1 text-xs text-gray-500">[m
+             Sign in to submit abstracts and access conference resources[m
+[36m@@ -254,7 +254,7 @@[m [mexport default function DelegateLoginPage() {[m
+         {/* Conference Info */}[m
+         <div className="text-center border-t pt-4">[m
+           <p className="text-xs text-gray-500">[m
+[31m-            For technical support, contact: abstracts@phocon2025.com[m
+[32m+[m[32m            For technical support, contact: support@apbmt.org[m
+           </p>[m
+         </div>[m
+       </div>[m
+[1mdiff --git a/src/app/page.tsx b/src/app/page.tsx[m
+[1mindex e046aea..cac8a3c 100644[m
+[1m--- a/src/app/page.tsx[m
+[1m+++ b/src/app/page.tsx[m
+[36m@@ -26,16 +26,16 @@[m [mexport default function APBMTHomepage() {[m
+ [m
+   const conferenceStats = [[m
+     { icon: Users, label: 'Expected Attendees', value: '500+', color: 'blue' },[m
+[31m-    { icon: FileText, label: 'Abstract Categories', value: '2', color: 'green' },[m
+[32m+[m[32m    { icon: FileText, label: 'Abstract Categories', value: '5', color: 'green' },[m
+     { icon: Award, label: 'Keynote Speakers', value: '15', color: 'purple' },[m
+[31m-    { icon: Calendar, label: 'Conference Days', value: '2', color: 'orange' }[m
+[32m+[m[32m    { icon: Calendar, label: 'Conference Days', value: '3', color: 'orange' }[m
+   ];[m
+ [m
+   const importantDates = [[m
+[31m-    { event: 'Abstract Submission Deadline', date: 'September 1,2025(midnight 1st)', status: 'extended', color: 'red' },[m
+[31m-    { event: 'Early Bird Registration', date: 'July 1,2025', status: 'open', color: 'green' },[m
+[31m-    { event: 'Abstact Notification', date: 'October 1,2025', status: 'upcoming', color: 'blue' },[m
+[31m-    { event: 'Conference Dates', date: '29th-30th Nov,2025', status: 'confirmed', color: 'purple' }[m
+[32m+[m[32m    { event: 'Abstract Submission Deadline', date: 'July 10, 2025', status: 'extended', color: 'red' },[m
+[32m+[m[32m    { event: 'Early Bird Registration', date: 'August 15, 2025', status: 'open', color: 'green' },[m
+[32m+[m[32m    { event: 'Final Registration', date: 'February 15, 2025', status: 'upcoming', color: 'blue' },[m
+[32m+[m[32m    { event: 'Conference Dates', date: 'March 15-17, 2025', status: 'confirmed', color: 'purple' }[m
+   ];[m
+ [m
+   const abstractCategories = [[m
+[36m@@ -49,23 +49,23 @@[m [mexport default function APBMTHomepage() {[m
+     { [m
+       title: 'Poster Presentation', [m
+       duration: 'Display', [m
+[31m-      wordLimit: '300 words',[m
+[32m+[m[32m      wordLimit: '200 words',[m
+       icon: FileText,[m
+       description: 'Visual presentation of research findings'[m
+     },[m
+[31m-    // { [m
+[31m-    //   title: 'E-Poster Presentation', [m
+[31m-    //   duration: '5+2 minutes', [m
+[31m-    //   wordLimit: '200 words',[m
+[31m-    //   icon: Activity,[m
+[31m-    //   description: 'Electronic poster with presentation slot'[m
+[31m-    // },[m
+     { [m
+[31m-      title: 'Oral Presentation', [m
+[31m-      duration: '8+2 minutes', [m
+[31m-      wordLimit: '300 words',[m
+[32m+[m[32m      title: 'E-Poster Presentation',[m[41m [m
+[32m+[m[32m      duration: '5+2 minutes',[m[41m [m
+[32m+[m[32m      wordLimit: '200 words',[m
+       icon: Activity,[m
+[31m-      description: 'Competitive presentations for Oral session'[m
+[32m+[m[32m      description: 'Electronic poster with presentation slot'[m
+[32m+[m[32m    },[m
+[32m+[m[32m    {[m[41m [m
+[32m+[m[32m      title: 'Award Paper',[m[41m [m
+[32m+[m[32m      duration: '8+2 minutes',[m[41m [m
+[32m+[m[32m      wordLimit: '250 words',[m
+[32m+[m[32m      icon: Award,[m
+[32m+[m[32m      description: 'Competitive presentations for awards'[m
+     }[m
+   ];[m
+ [m
+[36m@@ -86,8 +86,8 @@[m [mexport default function APBMTHomepage() {[m
+                 <Heart className="h-6 w-6 text-white" />[m
+               </div>[m
+               <div>[m
+[31m-                <h1 className="text-xl font-bold text-gray-800">PHOCON-2025</h1>[m
+[31m-                <p className="text-xs text-gray-500">28th Annual Pediatric Hematology Oncology Conference</p>[m
+[32m+[m[32m                <h1 className="text-xl font-bold text-gray-800">APBMT 2025</h1>[m
+[32m+[m[32m                <p className="text-xs text-gray-500">Asia-Pacific BMT Conference</p>[m
+               </div>[m
+             </div>[m
+             [m
+[36m@@ -141,27 +141,27 @@[m [mexport default function APBMTHomepage() {[m
+         <div className="max-w-7xl mx-auto px-4 text-center">[m
+           <div className="inline-flex items-center bg-white/10 rounded-full px-4 py-2 mb-6">[m
+             <Bell className="h-4 w-4 mr-2" />[m
+[31m-            <span className="text-sm font-medium">Abstract Submission Extended to September 1,2025(midnight 1st)</span>[m
+[32m+[m[32m            <span className="text-sm font-medium">Abstract Submission Extended to July 10, 2025</span>[m
+           </div>[m
+           [m
+           <h1 className="text-5xl font-bold mb-6">[m
+[31m-            PHOCON 2025 Annual Conference[m
+[32m+[m[32m            APBMT 2025 Annual Conference[m
+           </h1>[m
+           <p className="text-xl text-blue-100 mb-4 max-w-3xl mx-auto">[m
+[31m-            PHOCON 28th Annual Pediatric Hematology Oncology Conference[m
+[32m+[m[32m            Asia-Pacific Blood and Marrow Transplantation Group Conference[m
+           </p>[m
+           <p className="text-lg text-blue-200 mb-8 max-w-2xl mx-auto">[m
+[31m-            Department of Pediatric Oncology Kasturba Medical College, Manipal University, Manipal[m
+[32m+[m[32m            Advancing Pediatric BMT Research & Clinical Excellence[m
+           </p>[m
+           [m
+           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">[m
+             <div className="flex items-center text-blue-100">[m
+               <Calendar className="h-5 w-5 mr-2" />[m
+[31m-              <span>29th - 30th Nov, 2025</span>[m
+[32m+[m[32m              <span>March 15-17, 2025</span>[m
+             </div>[m
+             <div className="flex items-center text-blue-100">[m
+               <MapPin className="h-5 w-5 mr-2" />[m
+[31m-              <span>Dr TMA Pai Halls, KMC, Manipal</span>[m
+[32m+[m[32m              <span>Mumbai, India</span>[m
+             </div>[m
+             <div className="flex items-center text-blue-100">[m
+               <Users className="h-5 w-5 mr-2" />[m
+[36m@@ -192,7 +192,7 @@[m [mexport default function APBMTHomepage() {[m
+       <section className="py-8 bg-white">[m
+         <div className="max-w-7xl mx-auto px-4">[m
+           <div className="bg-white rounded-lg shadow-md p-6">[m
+[31m-            <h2 className="text-xl font-semibold mb-4 flex items-center text-blue-600 bg-white">[m
+[32m+[m[32m            <h2 className="text-xl font-semibold mb-4 flex items-center">[m
+               <Star className="h-5 w-5 mr-2 text-blue-600" />[m
+               System Status[m
+             </h2>[m
+[36m@@ -226,7 +226,7 @@[m [mexport default function APBMTHomepage() {[m
+       <section className="py-8 bg-gray-50">[m
+         <div className="max-w-7xl mx-auto px-4">[m
+           <div className="bg-white rounded-lg shadow-md p-6">[m
+[31m-            <h2 className="text-2xl font-semibold mb-4 flex items-center text-green-600 bg-white">[m
+[32m+[m[32m            <h2 className="text-2xl font-semibold mb-4 flex items-center">[m
+               <Target className="h-5 w-5 mr-2 text-green-600" />[m
+               Quick Actions[m
+             </h2>[m
+[36m@@ -263,7 +263,7 @@[m [mexport default function APBMTHomepage() {[m
+           <div className="text-center mb-12">[m
+             <h2 className="text-3xl font-bold text-gray-900 mb-4">Conference Overview</h2>[m
+             <p className="text-lg text-gray-600">[m
+[31m-              Join the PHOCON 28th Annual Pediatric Hematology Oncology Conference[m
+[32m+[m[32m              Join the premier pediatric BMT conference in Asia-Pacific[m
+             </p>[m
+           </div>[m
+           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">[m
+[36m@@ -341,9 +341,9 @@[m [mexport default function APBMTHomepage() {[m
+       {/* Call to Action */}[m
+       <section className="py-16 bg-gradient-to-r from-blue-600 to-purple-600 text-white">[m
+         <div className="max-w-4xl mx-auto px-4 text-center">[m
+[31m-          <h2 className="text-3xl font-bold mb-4">Ready to Join PHOCON 2025?</h2>[m
+[32m+[m[32m          <h2 className="text-3xl font-bold mb-4">Ready to Join APBMT 2025?</h2>[m
+           <p className="text-xl text-blue-100 mb-8">[m
+[31m-            Submit your research abstract and be part of the premier PHOCON 28th Annual Pediatric Hematology Oncology Conference[m
+[32m+[m[32m            Submit your research abstract and be part of the premier pediatric BMT conference[m
+           </p>[m
+           [m
+           <div className="flex flex-col sm:flex-row gap-4 justify-center">[m
+[36m@@ -373,10 +373,10 @@[m [mexport default function APBMTHomepage() {[m
+             <div>[m
+               <div className="flex items-center space-x-2 mb-4">[m
+                 <Heart className="h-6 w-6 text-blue-400" />[m
+[31m-                <span className="text-lg font-bold">PHOCON 2025</span>[m
+[32m+[m[32m                <span className="text-lg font-bold">APBMT 2025</span>[m
+               </div>[m
+               <p className="text-gray-400 text-sm">[m
+[31m-                PHOCON 28th Annual Pediatric Hematology Oncology Conference[m
+[32m+[m[32m                Advancing pediatric blood and marrow transplantation research across Asia-Pacific.[m
+               </p>[m
+             </div>[m
+             [m
+[36m@@ -393,9 +393,9 @@[m [mexport default function APBMTHomepage() {[m
+             <div>[m
+               <h3 className="text-lg font-semibold mb-4">Important Dates</h3>[m
+               <ul className="space-y-2 text-sm text-gray-400">[m
+[31m-                <li>Abstract Deadline: September 1, 2025 (midnight 1st)</li>[m
+[31m-                <li>Early Registration: July 1, 2025</li>[m
+[31m-                <li>Conference: 29th-30th Nov, 2025</li>[m
+[32m+[m[32m                <li>Abstract Deadline: July 10, 2025<

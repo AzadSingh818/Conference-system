@@ -13,6 +13,7 @@ import {
 import { getCurrentUser, logoutUser } from '@/lib/auth-utils';
 import FinalUploadModal from '@/components/FinalUploadModal';
 import ValidatedTextArea from '@/components/ValidatedTextArea';
+import UserAbstractDetailModal from '@/components/UserAbstractDetailModal';
 
 export default function DelegateDashboard() {
   const router = useRouter();
@@ -25,6 +26,9 @@ export default function DelegateDashboard() {
   const [apiError, setApiError] = useState(null);
   const [retryCount, setRetryCount] = useState(0);
   const [lastFetched, setLastFetched] = useState(null);
+  // Add these new state variables
+const [showDetailModal, setShowDetailModal] = useState(false);
+const [selectedAbstractForDetail, setSelectedAbstractForDetail] = useState(null);
 
   // 🚀 NEW: Edit functionality states
   const [showEditModal, setShowEditModal] = useState(false);
@@ -177,6 +181,20 @@ export default function DelegateDashboard() {
     setWordCountValid(true);
     setShowEditModal(true);
   };
+
+  // Handle view details
+const handleViewDetails = (abstract) => {
+  console.log('👁️ Opening detail modal for:', abstract.title);
+  setSelectedAbstractForDetail(abstract);
+  setShowDetailModal(true);
+};
+
+// Close detail modal
+const closeDetailModal = () => {
+  console.log('❌ Closing detail modal');
+  setShowDetailModal(false);
+  setSelectedAbstractForDetail(null);
+};
 
   // 🚀 NEW: Handle edit form submission
   const handleEditSubmit = async (e) => {
@@ -531,12 +549,6 @@ export default function DelegateDashboard() {
                       </button>
                     )}
 
-                    {/* View Abstract Details */}
-                    <button className="flex items-center px-3 py-1 bg-gray-100 text-gray-700 rounded text-sm hover:bg-gray-200 transition-colors">
-                      <ViewIcon className="w-3 h-3 mr-1" />
-                      View Details
-                    </button>
-
                     {/* Download Submitted File */}
                     {abstract.file_url && (
                       <button className="flex items-center px-3 py-1 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200 transition-colors">
@@ -815,7 +827,12 @@ export default function DelegateDashboard() {
                     </span>
                     
                     <div className="flex space-x-2">
-                      <button className="text-sm text-blue-600 hover:text-blue-800 font-medium">View Details</button>
+                      <button 
+                        onClick={() => handleViewDetails(abstract)}
+                        className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                      >
+                        View Details
+                      </button>
                       {abstract.status === 'pending' && (
                         <button 
                           onClick={() => handleEditAbstract(abstract)}
@@ -1339,6 +1356,15 @@ export default function DelegateDashboard() {
 
       {/* 🚀 NEW: Edit Abstract Modal */}
       <EditAbstractModal />
+      
+      {/* User Abstract Detail Modal */}
+      {showDetailModal && selectedAbstractForDetail && (
+        <UserAbstractDetailModal
+          abstract={selectedAbstractForDetail}
+          isOpen={showDetailModal}
+          onClose={closeDetailModal}
+        />
+      )}
     </div>
   );
 }
