@@ -1,5 +1,5 @@
 // src/app/api/abstracts/route.js
-// 🚀 FIXED VERSION - File upload integration with database
+// 🚀 ENHANCED VERSION - Category support with auto-migration
 
 import { NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
@@ -9,7 +9,9 @@ import {
   updateAbstract, 
   deleteAbstract,
   getAbstractById,
-  testConnection 
+  testConnection,
+  initializeDatabase,  // 🚀 NEW: Add this import
+  migrateCategoryColumn // 🚀 NEW: Add this import
 } from '../../../lib/database-postgres.js';
 
 console.log('🚀 APBMT Abstracts API Route (PostgreSQL) loaded at:', new Date().toISOString());
@@ -30,14 +32,30 @@ function verifyToken(request) {
   }
 }
 
-// POST - Submit new abstract with proper file handling
+// 🚀 NEW: Enhanced database connection test with migration
+async function ensureDatabaseReady() {
+  try {
+    await testConnection();
+    console.log('✅ Database connection successful');
+    
+    // 🚀 NEW: Auto-run migration check
+    await initializeDatabase();
+    console.log('✅ Database initialization complete');
+    
+    return true;
+  } catch (error) {
+    console.error('❌ Database setup failed:', error);
+    throw error;
+  }
+}
+
+// 🚀 ENHANCED: POST - Submit new abstract with category support
 export async function POST(request) {
   try {
     console.log('📤 New abstract submission received');
     
-    // Test database connection first
-    await testConnection();
-    console.log('✅ Database connection successful');
+    // 🚀 ENHANCED: Ensure database is ready with migration
+    await ensureDatabaseReady();
 
     // Parse request data
     let submissionData;
@@ -58,7 +76,6 @@ export async function POST(request) {
         registration_id: formData.get('registration_id') || '',
         userEmail: formData.get('userEmail'),
         userId: formData.get('userId'),
-        // 🚀 FIX: Get file upload info from formData
         uploadedFiles: formData.get('uploadedFiles') ? JSON.parse(formData.get('uploadedFiles')) : null,
         submissionId: formData.get('submissionId')
       };
@@ -66,11 +83,12 @@ export async function POST(request) {
       submissionData = await request.json();
     }
 
+    // 🚀 ENHANCED: Better logging for category
     console.log('📝 Submission data received:', {
       title: submissionData.title?.substring(0, 50) + '...',
       presenter: submissionData.presenter_name,
       type: submissionData.presentation_type,
-      category: submissionData.category,
+      category: submissionData.category, // 🚀 LOG CATEGORY
       hasUploadedFiles: !!submissionData.uploadedFiles,
       submissionId: submissionData.submissionId
     });
@@ -115,27 +133,30 @@ export async function POST(request) {
       );
     }
 
-    // Validate category
+    // 🚀 ENHANCED: Better category validation with logging
     const validCategories = ['Hematology', 'Oncology', 'InPHOG', 'Nursing', 'HSCT'];
     if (!validCategories.includes(submissionData.category)) {
-      console.log('❌ Invalid category:', submissionData.category);
+      console.log('❌ Invalid category received:', submissionData.category);
+      console.log('✅ Valid categories are:', validCategories);
       return NextResponse.json(
         { 
           success: false, 
-          error: `Invalid category. Must be one of: ${validCategories.join(', ')}` 
+          error: `Invalid category "${submissionData.category}". Must be one of: ${validCategories.join(', ')}` 
         },
         { status: 400 }
       );
     }
 
-    // 🚀 FIX: Prepare abstract data with proper file information
+    console.log('✅ Category validation passed:', submissionData.category);
+
+    // 🚀 ENHANCED: Better abstract data preparation with category logging
     const abstractData = {
       user_id: decoded?.userId || 1,
       title: submissionData.title,
       presenter_name: submissionData.presenter_name,
-      institution_name: submissionData.institution_name,
+      institution_name: submissionData.institution_name || null,
       presentation_type: submissionData.presentation_type,
-      category: submissionData.category,
+      category: submissionData.category, // 🚀 ENSURE CATEGORY IS INCLUDED
       abstract_content: submissionData.abstract_content,
       co_authors: submissionData.co_authors || '',
       registration_id: submissionData.registration_id || '',
@@ -143,6 +164,8 @@ export async function POST(request) {
       file_name: null,
       file_size: null
     };
+
+    console.log('📝 Abstract data prepared with category:', abstractData.category);
 
     // 🚀 FIX: Handle uploaded files properly
     if (submissionData.uploadedFiles && submissionData.uploadedFiles.length > 0) {
@@ -168,13 +191,16 @@ export async function POST(request) {
       console.log('📝 No files uploaded with this abstract');
     }
 
-    console.log('✅ Validation passed, creating abstract in PostgreSQL with file info');
+    console.log('✅ Validation passed, creating abstract in PostgreSQL with category:', abstractData.category);
 
     // Create abstract in database
     const newAbstract = await createAbstract(abstractData);
+    
+    // 🚀 ENHANCED: Better success logging
     console.log('✅ Abstract created successfully:', {
       id: newAbstract.id,
       category: newAbstract.category,
+      title: newAbstract.title?.substring(0, 30) + '...',
       hasFile: !!(newAbstract.file_name && newAbstract.file_path),
       filePath: newAbstract.file_path
     });
@@ -214,7 +240,7 @@ export async function POST(request) {
         id: newAbstract.id,
         title: newAbstract.title,
         presenter_name: newAbstract.presenter_name,
-        category: newAbstract.category,
+        category: newAbstract.category, // 🚀 ENSURE CATEGORY IN RESPONSE
         status: newAbstract.status,
         submission_date: newAbstract.submission_date,
         abstract_number: newAbstract.abstract_number,
@@ -243,15 +269,15 @@ export async function POST(request) {
   }
 }
 
-// GET - Fetch abstracts (keep existing code)
+// 🚀 ENHANCED: GET - Fetch abstracts with migration check
 export const dynamic = 'force-dynamic';
 
 export async function GET(request) {
   try {
     console.log('📊 [API] GET abstracts request received');
     
-    await testConnection();
-    console.log('✅ [API] Database connection successful');
+    // 🚀 ENHANCED: Ensure database is ready
+    await ensureDatabaseReady();
     
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
@@ -355,7 +381,7 @@ export async function GET(request) {
         email: abstract.email || 'N/A',
         mobile_no: abstract.mobile_no || abstract.phone || abstract.mobile || 'N/A',
         status: abstract.status || 'pending',
-        category: abstract.category || 'Hematology',
+        category: abstract.category || 'Hematology', // 🚀 ENSURE CATEGORY ALWAYS EXISTS
         categoryType: abstract.categoryType || abstract.category || 'Hematology',
         presentation_type: abstract.presentation_type || 'Poster',
         
@@ -457,7 +483,7 @@ export async function PUT(request) {
   try {
     console.log('📝 PUT request received');
     
-    await testConnection();
+    await ensureDatabaseReady(); // 🚀 ENHANCED: Add migration check
     const body = await request.json();
     
     console.log('📄 Request body:', JSON.stringify(body, null, 2));
@@ -576,7 +602,7 @@ export async function DELETE(request) {
   try {
     console.log('🗑️ DELETE request received');
     
-    await testConnection();
+    await ensureDatabaseReady(); // 🚀 ENHANCED: Add migration check
     const decoded = verifyToken(request);
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');

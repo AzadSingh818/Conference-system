@@ -1,5 +1,5 @@
 // src/lib/database-postgres.js
-// 🚀 Database functions with download support
+// 🚀 Database functions with category support and auto-migration
 
 import { Pool } from 'pg';
 
@@ -35,6 +35,51 @@ async function checkCategoryColumnExists(client) {
   } catch (error) {
     console.error('❌ Error checking category column:', error);
     return false;
+  }
+}
+
+// 🚀 NEW: Auto-migration function to add category column
+export async function migrateCategoryColumn() {
+  const client = await pool.connect();
+  try {
+    console.log('🔄 Checking category column migration...');
+    
+    // Check if category column exists
+    const columnExists = await checkCategoryColumnExists(client);
+    
+    if (!columnExists) {
+      console.log('⚠️ Category column missing - performing migration...');
+      
+      // Add category column
+      await client.query(`
+        ALTER TABLE abstracts 
+        ADD COLUMN category VARCHAR(50) DEFAULT 'Hematology'
+      `);
+      
+      // Update existing records
+      await client.query(`
+        UPDATE abstracts 
+        SET category = 'Hematology' 
+        WHERE category IS NULL
+      `);
+      
+      // Add index for performance
+      await client.query(`
+        CREATE INDEX IF NOT EXISTS idx_abstracts_category ON abstracts(category)
+      `);
+      
+      console.log('✅ Category column migration completed successfully!');
+      return true;
+    } else {
+      console.log('✅ Category column already exists - no migration needed');
+      return false;
+    }
+    
+  } catch (error) {
+    console.error('❌ Category column migration failed:', error);
+    throw error;
+  } finally {
+    client.release();
   }
 }
 
@@ -113,13 +158,17 @@ export async function getUserById(userId) {
 }
 
 // ========================================
-// ABSTRACT MANAGEMENT WITH DOWNLOAD SUPPORT
+// ABSTRACT MANAGEMENT WITH CATEGORY SUPPORT
 // ========================================
 
 export async function createAbstract(abstractData) {
   const client = await pool.connect();
   try {
     console.log('🔄 Creating abstract for user:', abstractData.user_id);
+    console.log('📝 Abstract category:', abstractData.category);
+    
+    // 🚀 ENSURE CATEGORY COLUMN EXISTS BEFORE CREATING
+    await migrateCategoryColumn();
     
     // Check if category column exists
     const hasCategoryColumn = await checkCategoryColumnExists(client);
@@ -196,7 +245,7 @@ export async function createAbstract(abstractData) {
     }
     
     console.log('✅ Abstract created successfully:', result.rows[0].id);
-    console.log('📝 Category included:', result.rows[0].category || 'N/A (legacy mode)');
+    console.log('📝 Category saved:', result.rows[0].category || 'N/A (legacy mode)');
     
     return result.rows[0];
     
@@ -214,7 +263,8 @@ export async function createAbstract(abstractData) {
   }
 }
 
-export async function getAbstractsByUserId(userId) {
+// 🚀 ENHANCED: getUserAbstracts with better category handling
+export async function getUserAbstracts(userId) {
   const client = await pool.connect();
   try {
     // Convert to integer if string
@@ -224,25 +274,59 @@ export async function getAbstractsByUserId(userId) {
       throw new Error('Invalid user ID provided');
     }
     
-    // Check if category column exists for SELECT query
+    console.log(`🔄 Getting abstracts for user ${id}...`);
+    
+    // 🚀 ENSURE MIGRATION FIRST
+    await migrateCategoryColumn();
+    
+    // Check if category column exists
     const hasCategoryColumn = await checkCategoryColumnExists(client);
     
     let query;
     if (hasCategoryColumn) {
-      query = `SELECT * FROM abstracts WHERE user_id = $1 ORDER BY submission_date DESC`;
+      query = `
+        SELECT 
+          id, title, presenter_name, institution_name, presentation_type,
+          category, abstract_content, co_authors, status, abstract_number,
+          registration_id, submission_date, updated_at, reviewer_comments,
+          file_path, file_name, file_size
+        FROM abstracts 
+        WHERE user_id = $1 
+        ORDER BY submission_date DESC
+      `;
     } else {
-      query = `SELECT * FROM abstracts WHERE user_id = $1 ORDER BY submission_date DESC`;
+      query = `
+        SELECT 
+          id, title, presenter_name, institution_name, presentation_type,
+          abstract_content, co_authors, status, abstract_number,
+          registration_id, submission_date, updated_at, reviewer_comments,
+          file_path, file_name, file_size
+        FROM abstracts 
+        WHERE user_id = $1 
+        ORDER BY submission_date DESC
+      `;
     }
     
     const result = await client.query(query, [id]);
     
-    // Add default category for legacy records
+    // 🚀 ENHANCED: Better category mapping with proper defaults
     const abstracts = result.rows.map(abstract => ({
       ...abstract,
-      category: abstract.category || 'Hematology' // Default category for legacy records
+      category: abstract.category || 'Hematology', // Ensure category always exists
+      categoryType: abstract.category || 'Hematology', // Additional mapping for frontend
+      hasFile: !!(abstract.file_name && abstract.file_path)
     }));
     
     console.log(`📊 Found ${abstracts.length} abstracts for user ${id}`);
+    
+    // 🚀 NEW: Log category distribution for debugging
+    const categoryStats = abstracts.reduce((acc, abstract) => {
+      acc[abstract.category] = (acc[abstract.category] || 0) + 1;
+      return acc;
+    }, {});
+    
+    console.log('📊 User abstracts by category:', categoryStats);
+    
     return abstracts;
     
   } catch (error) {
@@ -253,16 +337,18 @@ export async function getAbstractsByUserId(userId) {
   }
 }
 
-// CRITICAL FIX: ADD MISSING getUserAbstracts FUNCTION
-export async function getUserAbstracts(userId) {
-  console.log('🔄 getUserAbstracts called for user:', userId);
-  return await getAbstractsByUserId(userId);
+export async function getAbstractsByUserId(userId) {
+  console.log('🔄 getAbstractsByUserId called for user:', userId);
+  return await getUserAbstracts(userId);
 }
 
 // ✅ ENHANCED: getAllAbstracts with file information for download
 export async function getAllAbstracts() {
   const client = await pool.connect();
   try {
+    // 🚀 ENSURE MIGRATION FIRST
+    await migrateCategoryColumn();
+    
     // Check if category column exists
     const hasCategoryColumn = await checkCategoryColumnExists(client);
     
@@ -467,6 +553,7 @@ export async function getAbstractById(abstractId) {
     console.log(`📊 Abstract ${id} details:`, {
       id: enhancedAbstract.id,
       title: enhancedAbstract.title,
+      category: enhancedAbstract.category,
       file_name: enhancedAbstract.file_name,
       file_path: enhancedAbstract.file_path,
       hasFile: enhancedAbstract.hasFile
@@ -587,6 +674,9 @@ export async function updateAbstract(abstractId, updateData) {
     
     console.log(`🔄 Updating abstract ${id} with data:`, Object.keys(updateData));
     
+    // 🚀 ENSURE MIGRATION FIRST
+    await migrateCategoryColumn();
+    
     // Check if category column exists
     const hasCategoryColumn = await checkCategoryColumnExists(client);
     
@@ -695,6 +785,9 @@ export async function getStatistics() {
   try {
     console.log('🔄 Fetching statistics...');
     
+    // 🚀 ENSURE MIGRATION FIRST
+    await migrateCategoryColumn();
+    
     // Check if category column exists for statistics
     const hasCategoryColumn = await checkCategoryColumnExists(client);
     
@@ -778,6 +871,7 @@ export async function testConnection() {
   }
 }
 
+// 🚀 ENHANCED: initializeDatabase with auto-migration
 export async function initializeDatabase() {
   const client = await pool.connect();
   try {
@@ -797,12 +891,19 @@ export async function initializeDatabase() {
     if (existingTables.includes('users') && existingTables.includes('abstracts')) {
       console.log('✅ Database tables exist and ready');
       
-      // Check if category column exists
+      // 🚀 NEW: Auto-migrate category column if missing
+      try {
+        await migrateCategoryColumn();
+      } catch (migrationError) {
+        console.error('⚠️ Migration warning:', migrationError);
+      }
+      
+      // Final check
       const hasCategoryColumn = await checkCategoryColumnExists(client);
       
       if (!hasCategoryColumn) {
-        console.log('⚠️ Category column missing - running in legacy compatibility mode');
-        console.log('📝 To enable category support, run: ALTER TABLE abstracts ADD COLUMN category VARCHAR(50) DEFAULT \'Hematology\';');
+        console.log('⚠️ Category column still missing - manual intervention required');
+        console.log('📝 Please run: ALTER TABLE abstracts ADD COLUMN category VARCHAR(50) DEFAULT \'Hematology\';');
       } else {
         console.log('✅ Category column exists - full feature support enabled');
       }
@@ -860,7 +961,7 @@ export function handleDatabaseError(error, operation) {
 // Export pool for direct access if needed
 export { pool };
 
-// DEFAULT EXPORT WITH BACKWARD COMPATIBILITY AND DOWNLOAD SUPPORT
+// DEFAULT EXPORT WITH BACKWARD COMPATIBILITY AND CATEGORY SUPPORT
 export default {
   // User functions
   createUser,
@@ -872,7 +973,7 @@ export default {
   getAbstractsByUserId,
   getUserAbstracts,
   getAllAbstracts,
-  getAbstractById, // ✅ Enhanced for download
+  getAbstractById,
   updateAbstractStatus,
   bulkUpdateAbstractStatus,
   updateAbstract,
@@ -885,8 +986,9 @@ export default {
   closePool,
   handleDatabaseError,
   
-  // Utility functions
+  // 🚀 NEW: Migration utilities
   checkCategoryColumnExists,
+  migrateCategoryColumn,
   
   // Direct pool access
   pool
